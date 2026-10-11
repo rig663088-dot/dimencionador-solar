@@ -1,0 +1,14 @@
+DIMENSIONADOR SOLAR - APK de Android
+
+1. Crea un repositorio nuevo en github.com (puede ser privado).
+2. Sube TODO el contenido de esta carpeta (incluida la carpeta oculta .github).
+3. Entra a la pestana "Actions" del repositorio. La construccion empieza sola (tarda unos 5 a 8 minutos).
+   Si no empieza: Actions > "Construir APK" > Run workflow.
+4. Cuando termine en verde, abre la ejecucion y descarga "dimensionador-solar-apk" (viene en .zip).
+5. Descomprime, pasa app-debug.apk al celular e instalalo
+   (Android pedira permitir "instalar apps de origen desconocido").
+
+Notas:
+- Es un APK de pruebas (debug), suficiente para uso personal. Para Play Store hace falta firmarlo.
+- Las fuentes se descargan de Google Fonts; sin internet la app usa fuentes del sistema y funciona igual.
+- Para cambiar la app, edita www/index.html y vuelve a subirlo: se genera un APK nuevo.

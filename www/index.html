@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Dimensionador Solar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: hoja de cálculo técnica. Entradas a la izquierda, resultado fijo a la derecha; en teléfono el resultado se resume en una barra inferior. */
+:root {
+  --bg: #E9EEF2;
+  --surface: #FFFFFF;
+  --surface-2: #F3F6F8;
+  --ink: #12202E;
+  --muted: #556575;
+  --line: #CBD5DD;
+  --accent: #16508F;
+  --on-accent: #FFFFFF;
+  --sun: #8F5300;
+  --sun-soft: #FBEBCB;
+  --warn: #8A2D12;
+  --warn-soft: #FBE3DA;
+  --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E151C; --surface: #16202A; --surface-2: #1C2833; --ink: #E4EBF1; --muted: #97A7B6;
+    --line: #2B3A48; --accent: #7DB0EE; --on-accent: #0B1620; --sun: #F3BC52; --sun-soft: #35280D;
+    --warn: #F2A184; --warn-soft: #3A1E15; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E151C; --surface: #16202A; --surface-2: #1C2833; --ink: #E4EBF1; --muted: #97A7B6;
+  --line: #2B3A48; --accent: #7DB0EE; --on-accent: #0B1620; --sun: #F3BC52; --sun-soft: #35280D;
+  --warn: #F2A184; --warn-soft: #3A1E15; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 15px/1.5 var(--f-body);
+  padding-inline: 16px; padding-block: 20px 96px;
+}
+.wrap { max-width: 1120px; margin-inline: auto; display: grid; gap: 20px; }
+h1 { font: 700 clamp(30px, 6vw, 42px)/1.05 var(--f-display); margin: 0; letter-spacing: .005em; text-wrap: balance; }
+.lede { margin: 6px 0 0; color: var(--muted); max-width: 60ch; }
+header.top { display: grid; gap: 14px; }
+
+.seg-group { display: flex; flex-wrap: wrap; gap: 0; width: fit-content; max-width: 100%; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg { position: relative; display: block; }
+.seg input { position: absolute; opacity: 0; inset: 0; }
+.seg span { display: block; padding: 9px 14px; font-weight: 500; cursor: pointer; }
+.seg input:checked + span { background: var(--accent); color: var(--on-accent); }
+.seg input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: -3px; }
+
+.layout { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); }
+  #results { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+  .bar { display: none !important; }
+  body { padding-block: 28px 40px; }
+}
+.inputs { display: grid; gap: 16px; min-width: 0; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; min-width: 0; }
+.card > h2, .label-h { font: 600 13px/1.2 var(--f-display); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+.hint { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+
+.fields { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); }
+.f { display: grid; gap: 4px; min-width: 0; align-content: start; }
+.f label { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+input, select {
+  font: inherit; color: var(--ink); background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; min-height: 40px; width: 100%; min-width: 0;
+}
+input[type="number"] { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sub-h { margin: 16px 0 10px; font: 600 12px/1 var(--f-display); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+
+.btn { font: 600 14px var(--f-body); border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 4px; padding: 9px 14px; min-height: 40px; cursor: pointer; }
+.btn:hover { background: var(--surface-2); }
+.btn.solid { background: var(--accent); color: var(--on-accent); }
+.icon-btn { width: 40px; height: 40px; border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 4px; font-size: 20px; line-height: 1; cursor: pointer; }
+.icon-btn:hover { color: var(--warn); border-color: var(--warn); }
+
+.load { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+.load .name { grid-column: 1 / -1; }
+.load .foot { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.wh { display: grid; justify-items: start; }
+.wh .k { font-size: 12px; color: var(--muted); }
+.wh output { font: 500 15px var(--f-mono); font-variant-numeric: tabular-nums; }
+@media (min-width: 640px) {
+  .load { grid-template-columns: minmax(0, 2fr) 88px 66px 66px 96px 40px; align-items: end; }
+  .load .name { grid-column: auto; }
+  .load .foot { display: contents; }
+  .wh { justify-items: end; padding-bottom: 8px; }
+}
+.load-tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--line); }
+.load-tools select { width: auto; flex: 1 1 200px; }
+.totals { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 12px; font-family: var(--f-mono); font-size: 14px; font-variant-numeric: tabular-nums; }
+.totals b { font-weight: 500; color: var(--sun); }
+
+.tiles { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.tile { background: var(--surface-2); border-radius: 4px; padding: 12px; min-width: 0; }
+.tile .t { font: 600 12px/1 var(--f-display); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.tile .v { margin-top: 8px; font: 500 30px/1 var(--f-mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tile .u { font: 600 13px var(--f-display); letter-spacing: .04em; text-transform: uppercase; color: var(--sun); margin-left: 4px; }
+.tile .s { margin-top: 6px; font-size: 13px; color: var(--muted); }
+
+.warns { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.warns li { background: var(--warn-soft); color: var(--warn); border-radius: 4px; padding: 8px 10px; font-size: 13.5px; }
+.rows { margin: 14px 0 0; display: grid; }
+.rows div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-top: 1px solid var(--line); }
+.rows dt { color: var(--muted); }
+.rows dd { margin: 0; text-align: right; font-family: var(--f-mono); font-size: 14px; font-variant-numeric: tabular-nums; }
+.rows .hl { background: var(--sun-soft); padding-inline: 8px; margin-inline: -8px; border-radius: 3px; }
+.rows .hl dt, .rows .hl dd { color: var(--sun); font-weight: 500; }
+details { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+summary { cursor: pointer; font-weight: 600; }
+pre.calc { margin: 10px 0 0; padding: 12px; background: var(--surface-2); border-radius: 4px; overflow-x: auto; font: 12.5px/1.6 var(--f-mono); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
+.actions .ok { color: var(--sun); font-size: 13px; }
+textarea.sum { width: 100%; margin-top: 10px; min-height: 120px; font: 12.5px/1.5 var(--f-mono); background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 10px; }
+.empty { color: var(--muted); margin: 0; }
+
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--accent); color: var(--on-accent); padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 10px); display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; font-size: 14px; }
+.bar strong { font: 500 15px var(--f-mono); }
+footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
+@media (prefers-reduced-motion: no-preference) { .btn, .icon-btn { transition: background .15s, color .15s, border-color .15s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Dimensionador solar</h1>
+      <p class="lede">Calcula paneles, baterías, regulador e inversor a partir de tus cargas diarias. Los datos precargados son un ejemplo: cámbialos por los de tu instalación.</p>
+    </div>
+    <div class="seg-group" role="radiogroup" aria-label="Tipo de sistema">
+      <label class="seg"><input type="radio" name="mode" id="mode-off" value="off" checked><span>Aislado con baterías</span></label>
+      <label class="seg"><input type="radio" name="mode" id="mode-on" value="on"><span>Conectado a la red</span></label>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="inputs">
+      <section class="card" aria-labelledby="h-cargas">
+        <h2 id="h-cargas">Cargas</h2>
+        <div id="loads"></div>
+        <div class="load-tools">
+          <button type="button" class="btn solid" id="add">Agregar equipo</button>
+          <select id="preset" aria-label="Agregar un equipo típico"></select>
+        </div>
+        <div class="totals" id="totals"></div>
+      </section>
+
+      <section class="card" aria-labelledby="h-sitio">
+        <h2 id="h-sitio">Sitio y rendimiento</h2>
+        <div class="fields">
+          <div class="f"><label for="city">Ciudad (referencial)</label><select id="city"></select></div>
+          <div class="f"><label for="hsp">HSP (kWh/m²·día)</label><input id="hsp" type="number" inputmode="decimal" step="0.1" min="0" value="6"></div>
+          <div class="f"><label for="pr">Rendimiento global PR (%)</label><input id="pr" type="number" inputmode="decimal" min="1" max="100" value="75"></div>
+          <div class="f"><label for="einv">Eficiencia inversor (%)</label><input id="einv" type="number" inputmode="decimal" min="1" max="100" value="92"></div>
+          <div class="f"><label for="sim">Simultaneidad de cargas (%)</label><input id="sim" type="number" inputmode="decimal" min="1" max="100" value="80"></div>
+        </div>
+        <p class="hint">Las HSP son valores aproximados. Confirma el dato de tu zona en el Atlas de Energía Solar del SENAMHI.</p>
+      </section>
+
+      <section class="card" aria-labelledby="h-panel">
+        <h2 id="h-panel">Panel solar</h2>
+        <div class="fields">
+          <div class="f"><label for="ppreset">Modelo típico</label><select id="ppreset"></select></div>
+          <div class="f"><label for="wp">Potencia (Wp)</label><input id="wp" type="number" inputmode="decimal" min="0" value="550"></div>
+          <div class="f"><label for="voc">Voc (V)</label><input id="voc" type="number" inputmode="decimal" step="0.1" min="0" value="49.6"></div>
+          <div class="f"><label for="vmp">Vmp (V)</label><input id="vmp" type="number" inputmode="decimal" step="0.1" min="0" value="41.8"></div>
+          <div class="f"><label for="isc">Isc (A)</label><input id="isc" type="number" inputmode="decimal" step="0.1" min="0" value="14"></div>
+          <div class="f"><label for="vmax" id="vmax-l">Voc máx. del regulador (V)</label><input id="vmax" type="number" inputmode="decimal" min="0" value="150"></div>
+          <div class="f"><label for="vmin" id="vmin-l">Vmín. de operación MPPT (V)</label><input id="vmin" type="number" inputmode="decimal" min="0" value="30"></div>
+        </div>
+        <p class="hint">Valores típicos. Usa los de la ficha técnica de tu panel y de tu regulador o inversor.</p>
+      </section>
+
+      <section class="card" data-off aria-labelledby="h-bat">
+        <h2 id="h-bat">Baterías</h2>
+        <div class="fields">
+          <div class="f"><label for="chem">Tecnología</label>
+            <select id="chem"><option value="lead">Ácido (plomo-ácido)</option><option value="gel">Gel</option><option value="lfp">Litio LiFePO₄</option></select></div>
+          <div class="f"><label for="dod">Descarga máx. DoD (%)</label><input id="dod" type="number" inputmode="decimal" min="1" max="100" value="50"></div>
+          <div class="f"><label for="ebat">Eficiencia batería (%)</label><input id="ebat" type="number" inputmode="decimal" min="1" max="100" value="80"></div>
+          <div class="f"><label for="days">Autonomía (días)</label><input id="days" type="number" inputmode="decimal" step="0.5" min="0.5" value="2"></div>
+          <div class="f"><label for="vsys">Tensión del sistema</label>
+            <select id="vsys"><option value="auto">Automática</option><option value="12">12 V</option><option value="24">24 V</option><option value="48">48 V</option></select></div>
+          <div class="f"><label for="vunit">Batería: tensión (V)</label><input id="vunit" type="number" inputmode="decimal" min="1" value="12"></div>
+          <div class="f"><label for="ahunit">Batería: capacidad (Ah)</label><input id="ahunit" type="number" inputmode="decimal" min="1" value="100"></div>
+        </div>
+      </section>
+    </div>
+
+    <aside id="results" aria-live="polite"></aside>
+  </div>
+
+  <footer>Este cálculo sirve para predimensionar. Verifica los resultados con las fichas técnicas de los equipos y con el Código Nacional de Electricidad antes de instalar.</footer>
+</div>
+
+<div class="bar" id="bar"></div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var num = function (id) { var v = parseFloat($(id).value); return isFinite(v) ? v : 0; };
+  var fmt = function (x, d) { d = d || 0; return x.toLocaleString('es-PE', { minimumFractionDigits: d, maximumFractionDigits: d }); };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+
+  var CITIES = [['Arequipa', 6.0], ['Tacna', 5.8], ['Moquegua', 6.0], ['Puno', 5.8], ['Cusco', 5.3], ['Ayacucho', 5.5], ['Huancayo', 5.2], ['Piura', 5.5], ['Trujillo', 5.0], ['Lima', 4.0], ['Iquitos', 4.5]];
+  var PANELS = [
+    ['550 Wp (monocristalino 144 celdas)', 550, 49.6, 41.8, 14.0],
+    ['450 Wp (monocristalino 108 celdas)', 450, 41.1, 34.2, 13.9],
+    ['330 Wp (policristalino 72 celdas)', 330, 45.6, 37.8, 9.3],
+    ['100 Wp (panel de 12 V)', 100, 22.5, 18.5, 5.9]
+  ];
+  var CHEM = { lead: { dod: 50, eff: 80 }, gel: { dod: 50, eff: 85 }, lfp: { dod: 80, eff: 95 } };
+  var PRESETS = [
+    ['Foco LED', 9, 1, 5], ['Refrigeradora', 150, 1, 8], ['Televisor LED 32"', 60, 1, 4], ['Laptop', 65, 1, 5],
+    ['Router Wi-Fi', 12, 1, 24], ['Cámara de videovigilancia', 12, 1, 24], ['Central de alarma y sirena', 15, 1, 24],
+    ['Bomba de agua 1/2 HP', 370, 1, 1], ['Ventilador', 50, 1, 6], ['Cargador de celular', 10, 1, 3], ['Licuadora', 400, 1, 0.2]
+  ];
+  var INV = [300, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000];
+  var CTRL = [10, 20, 30, 40, 50, 60, 80, 100];
+
+  var rows = [
+    { id: 1, name: 'Focos LED', w: 9, qty: 6, h: 5 },
+    { id: 2, name: 'Refrigeradora', w: 150, qty: 1, h: 8 },
+    { id: 3, name: 'Televisor LED 32"', w: 60, qty: 1, h: 4 },
+    { id: 4, name: 'Router Wi-Fi', w: 12, qty: 1, h: 24 },
+    { id: 5, name: 'Laptop', w: 65, qty: 1, h: 4 }
+  ];
+  var seq = 6;
+  var lastSummary = '';
+
+  $('city').innerHTML = CITIES.map(function (c) { return '<option value="' + c[1] + '">' + c[0] + ' (' + fmt(c[1], 1) + ')</option>'; }).join('') + '<option value="custom">Personalizado</option>';
+  $('ppreset').innerHTML = PANELS.map(function (p, i) { return '<option value="' + i + '">' + p[0] + '</option>'; }).join('') + '<option value="custom">Personalizado</option>';
+  $('preset').innerHTML = '<option value="">Agregar equipo típico…</option>' + PRESETS.map(function (p, i) { return '<option value="' + i + '">' + p[0] + ' · ' + p[1] + ' W</option>'; }).join('');
+
+  function renderLoads() {
+    $('loads').innerHTML = rows.map(function (r) {
+      var p = 'l' + r.id;
+      return '<div class="load" data-id="' + r.id + '">' +
+        '<div class="f name"><label for="' + p + '-n">Equipo</label><input id="' + p + '-n" data-k="name" value="' + esc(r.name) + '"></div>' +
+        '<div class="f"><label for="' + p + '-w">Potencia (W)</label><input id="' + p + '-w" data-k="w" type="number" inputmode="decimal" min="0" step="any" value="' + r.w + '"></div>' +
+        '<div class="f"><label for="' + p + '-q">Cantidad</label><input id="' + p + '-q" data-k="qty" type="number" inputmode="decimal" min="0" step="1" value="' + r.qty + '"></div>' +
+        '<div class="f"><label for="' + p + '-h">Horas/día</label><input id="' + p + '-h" data-k="h" type="number" inputmode="decimal" min="0" max="24" step="any" value="' + r.h + '"></div>' +
+        '<div class="foot"><div class="wh"><span class="k">Wh/día</span><output id="' + p + '-wh"></output></div>' +
+        '<button type="button" class="icon-btn" data-del aria-label="Quitar ' + esc(r.name || 'equipo') + '">×</button></div></div>';
+    }).join('');
+  }
+
+  function readSettings() {
+    return {
+      mode: document.querySelector('input[name="mode"]:checked').value,
+      hsp: num('hsp'), pr: num('pr') / 100, einv: num('einv') / 100, sim: num('sim') / 100,
+      wp: num('wp'), voc: num('voc'), vmp: num('vmp'), isc: num('isc'), vmax: num('vmax'), vmin: num('vmin'),
+      dod: num('dod') / 100, ebat: num('ebat') / 100, days: num('days'), vsel: $('vsys').value,
+      vunit: num('vunit'), ahunit: num('ahunit')
+    };
+  }
+
+  function calc(s) {
+    var E = 0, Pins = 0;
+    rows.forEach(function (r) { E += r.w * r.qty * r.h; Pins += r.w * r.qty; });
+    var off = s.mode === 'off';
+    var bad = E <= 0 || s.wp <= 0 || s.hsp <= 0 || s.pr <= 0 || s.einv <= 0 || (off && (s.ebat <= 0 || s.dod <= 0 || s.days <= 0 || s.vunit <= 0 || s.ahunit <= 0));
+    if (bad) return { invalid: true, E: E, Pins: Pins };
+
+    var c = { E: E, Pins: Pins, off: off, warns: [] };
+    c.Pmax = Pins * s.sim;
+    c.Ereq = off ? E / (s.einv * s.ebat) : E / s.einv;
+    c.perPanel = s.wp * s.hsp * s.pr;
+    c.N = Math.max(1, Math.ceil(c.Ereq / c.perPanel - 1e-9));
+
+    var KT = 1.15;
+    var smax = (s.voc > 0 && s.vmax > 0) ? Math.floor(s.vmax / (s.voc * KT)) : c.N;
+    var smin = (s.vmp > 0 && s.vmin > 0) ? Math.ceil(s.vmin / s.vmp) : 1;
+    c.smax = smax; c.smin = smin;
+    if (smax < 1) c.warns.push('Un solo panel ya supera la tensión máxima de entrada (Voc corregida ' + fmt(s.voc * KT, 1) + ' V). Elige otro panel o un equipo con mayor Vmáx.');
+    var lo = Math.max(smin, 1), hi = Math.max(Math.min(smax, c.N), 1);
+    var ser = 0;
+    if (lo > hi) {
+      ser = hi;
+      c.warns.push('Con la ventana MPPT indicada se necesitan entre ' + smin + ' y ' + Math.max(smax, 0) + ' paneles en serie, y eso no encaja con ' + c.N + ' paneles. Revisa Vmín., Vmáx. o el modelo de panel.');
+    } else {
+      for (var k = hi; k >= lo; k--) { if (c.N % k === 0) { ser = k; break; } }
+      if (!ser) ser = hi;
+    }
+    c.ser = ser; c.par = Math.ceil(c.N / ser); c.total = c.ser * c.par;
+    if (c.total > c.N) c.warns.push('Para completar el arreglo se usan ' + c.total + ' paneles (' + c.ser + ' en serie × ' + c.par + ' en paralelo) en lugar de ' + c.N + '.');
+    c.Pfv = c.total * s.wp;
+    c.Voc = c.ser * s.voc * KT;
+    c.Isc = c.par * s.isc;
+    c.Egen = c.Pfv * s.hsp * s.pr;
+    c.cov = (off ? c.Egen * s.einv * s.ebat : c.Egen * s.einv) / E;
+
+    if (off) {
+      c.vsys = s.vsel === 'auto' ? (c.Pfv <= 800 ? 12 : (c.Pfv <= 2400 ? 24 : 48)) : parseFloat(s.vsel);
+      c.Cwh = E * s.days / (s.dod * s.einv);
+      c.Cah = c.Cwh / c.vsys;
+      c.bs = Math.max(1, Math.ceil(c.vsys / s.vunit - 1e-9));
+      c.bp = Math.max(1, Math.ceil(c.Cah / s.ahunit - 1e-9));
+      c.btot = c.bs * c.bp;
+      c.Whinst = c.btot * s.vunit * s.ahunit;
+      if (Math.abs(c.bs * s.vunit - c.vsys) > 0.01) c.warns.push('Las baterías de ' + fmt(s.vunit) + ' V no forman exactamente ' + c.vsys + ' V (' + c.bs + ' en serie dan ' + fmt(c.bs * s.vunit) + ' V). Elige otra tensión de batería o de sistema.');
+      c.Ictrl = c.Pfv / c.vsys * 1.25;
+      var cs = CTRL.filter(function (x) { return x >= c.Ictrl; })[0];
+      if (cs) { c.ctrlN = 1; c.ctrlA = cs; } else { c.ctrlN = Math.ceil(c.Ictrl / 100); c.ctrlA = 100; }
+      c.Pinv = c.Pmax * 1.25;
+      c.invStd = INV.filter(function (x) { return x >= c.Pinv; })[0] || Math.ceil(c.Pinv / 1000) * 1000;
+      c.Ibat = c.Pinv / (c.vsys * 0.9);
+      if (c.Ibat > 100) c.warns.push('El inversor puede pedir unos ' + fmt(c.Ibat) + ' A a la batería a ' + c.vsys + ' V. Considera subir la tensión del sistema para reducir la corriente y la sección del cable.');
+      if (c.Ictrl > 100) c.warns.push('La corriente calculada del regulador (' + fmt(c.Ictrl) + ' A) supera los 100 A. Se indican ' + c.ctrlN + ' reguladores de 100 A, cada uno con su propio arreglo de paneles.');
+    } else {
+      c.invMin = c.Pfv / 1.2; c.invMax = c.Pfv;
+      if (c.Pmax > c.Pfv) c.warns.push('La potencia simultánea de las cargas (' + fmt(c.Pmax) + ' W) es mayor que la del arreglo. La red cubrirá la diferencia.');
+    }
+    return c;
+  }
+
+  function memoria(s, c) {
+    var L = [];
+    L.push('E diaria = Σ(P × cant × h) = ' + fmt(c.E) + ' Wh/día');
+    L.push('P instalada = Σ(P × cant) = ' + fmt(c.Pins) + ' W');
+    L.push('P simultánea = ' + fmt(c.Pins) + ' × ' + fmt(s.sim * 100) + ' % = ' + fmt(c.Pmax) + ' W');
+    if (c.off) L.push('E a generar = E / (η inv × η bat) = ' + fmt(c.E) + ' / (' + s.einv + ' × ' + s.ebat + ') = ' + fmt(c.Ereq) + ' Wh/día');
+    else L.push('E a generar = E / η inv = ' + fmt(c.E) + ' / ' + s.einv + ' = ' + fmt(c.Ereq) + ' Wh/día');
+    L.push('E por panel = Wp × HSP × PR = ' + fmt(s.wp) + ' × ' + s.hsp + ' × ' + s.pr + ' = ' + fmt(c.perPanel) + ' Wh/día');
+    L.push('N paneles = ' + fmt(c.Ereq) + ' / ' + fmt(c.perPanel) + ' = ' + fmt(c.Ereq / c.perPanel, 2) + ' → ' + c.N);
+    L.push('Arreglo = ' + c.ser + ' en serie × ' + c.par + ' en paralelo = ' + c.total + ' paneles (' + fmt(c.Pfv) + ' Wp)');
+    L.push('Voc de cadena = ' + c.ser + ' × ' + s.voc + ' V × 1,15 = ' + fmt(c.Voc, 1) + ' V');
+    L.push('Isc del arreglo = ' + c.par + ' × ' + s.isc + ' A = ' + fmt(c.Isc, 1) + ' A');
+    if (c.off) {
+      L.push('Tensión del sistema = ' + c.vsys + ' V');
+      L.push('C batería = E × días / (DoD × η inv) = ' + fmt(c.E) + ' × ' + s.days + ' / (' + s.dod + ' × ' + s.einv + ') = ' + fmt(c.Cwh) + ' Wh');
+      L.push('C batería = ' + fmt(c.Cwh) + ' / ' + c.vsys + ' V = ' + fmt(c.Cah) + ' Ah');
+      L.push('Baterías = ' + c.bs + ' en serie × ' + c.bp + ' en paralelo = ' + c.btot + ' de ' + fmt(s.vunit) + ' V / ' + fmt(s.ahunit) + ' Ah');
+      L.push('I regulador = Pfv / Vsis × 1,25 = ' + fmt(c.Pfv) + ' / ' + c.vsys + ' × 1,25 = ' + fmt(c.Ictrl, 1) + ' A → ' + (c.ctrlN > 1 ? c.ctrlN + ' × ' : '') + c.ctrlA + ' A');
+      L.push('P inversor = P simultánea × 1,25 = ' + fmt(c.Pinv) + ' W → ' + fmt(c.invStd) + ' W');
+    } else {
+      L.push('P inversor de red = Pfv / 1,2 … Pfv = ' + fmt(c.invMin) + ' … ' + fmt(c.invMax) + ' W');
+    }
+    L.push('Generación estimada = ' + fmt(c.Pfv) + ' × ' + s.hsp + ' × ' + s.pr + ' = ' + fmt(c.Egen) + ' Wh/día');
+    return L.join('\n');
+  }
+
+  function tile(t, v, u, sub) {
+    return '<div class="tile"><div class="t">' + t + '</div><div class="v">' + v + '<span class="u">' + u + '</span></div><div class="s">' + sub + '</div></div>';
+  }
+
+  function render(s, c) {
+    var box = $('results'), bar = $('bar');
+    var wasOpen = !!box.querySelector('details[open]');
+    if (c.invalid) {
+      box.innerHTML = '<section class="card"><h2>Resultado</h2><p class="empty">Agrega al menos un equipo con potencia, cantidad y horas, y completa los datos del panel y de la radiación solar para ver el resultado.</p></section>';
+      bar.textContent = 'Completa los datos para ver el resultado';
+      lastSummary = '';
+      return;
+    }
+    var tiles = tile('Paneles', c.total, 'uds', fmt(s.wp) + ' Wp c/u · ' + fmt(c.Pfv / 1000, 2) + ' kWp');
+    var invTxt, ctrlTxt;
+    if (c.off) {
+      tiles += tile('Baterías', c.btot, 'uds', fmt(s.vunit) + ' V · ' + fmt(s.ahunit) + ' Ah · ' + c.bs + 'S' + c.bp + 'P');
+      ctrlTxt = (c.ctrlN > 1 ? c.ctrlN + '×' : '') + c.ctrlA;
+      tiles += tile('Regulador MPPT', ctrlTxt, 'A', 'Sistema de ' + c.vsys + ' V');
+      invTxt = fmt(c.invStd);
+      tiles += tile('Inversor', invTxt, 'W', 'Pico de ' + fmt(c.Pmax) + ' W más 25 % de margen');
+    } else {
+      invTxt = fmt(c.invMin) + '–' + fmt(c.invMax);
+      tiles += tile('Inversor de red', invTxt, 'W', 'Entre Pfv/1,2 y Pfv');
+    }
+
+    var dl = '<dl class="rows">' +
+      '<div><dt>Consumo diario</dt><dd>' + fmt(c.E) + ' Wh · ' + fmt(c.E * 30 / 1000, 1) + ' kWh/mes</dd></div>' +
+      '<div><dt>Potencia instalada</dt><dd>' + fmt(c.Pins) + ' W (simultánea ' + fmt(c.Pmax) + ' W)</dd></div>' +
+      '<div><dt>Arreglo de paneles</dt><dd>' + c.ser + ' serie × ' + c.par + ' paralelo</dd></div>' +
+      '<div><dt>Voc de cadena (frío)</dt><dd>' + fmt(c.Voc, 1) + ' V</dd></div>' +
+      '<div><dt>Isc del arreglo</dt><dd>' + fmt(c.Isc, 1) + ' A</dd></div>' +
+      (c.off ? '<div><dt>Batería requerida</dt><dd>' + fmt(c.Cwh) + ' Wh · ' + fmt(c.Cah) + ' Ah a ' + c.vsys + ' V</dd></div>' +
+        '<div><dt>Batería instalada</dt><dd>' + fmt(c.Whinst) + ' Wh</dd></div>' : '') +
+      '<div><dt>Generación estimada</dt><dd>' + fmt(c.Egen) + ' Wh/día</dd></div>' +
+      '<div class="hl"><dt>Cobertura del consumo</dt><dd>' + fmt(c.cov * 100) + ' %</dd></div></dl>';
+
+    var warns = c.warns.length ? '<ul class="warns">' + c.warns.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul>' : '';
+    var mem = memoria(s, c);
+
+    var parts = [c.total + ' paneles de ' + fmt(s.wp) + ' Wp (' + fmt(c.Pfv / 1000, 2) + ' kWp), ' + c.ser + 'S' + c.par + 'P'];
+    if (c.off) {
+      parts.push(c.btot + ' baterías de ' + fmt(s.vunit) + ' V / ' + fmt(s.ahunit) + ' Ah (' + c.bs + 'S' + c.bp + 'P) a ' + c.vsys + ' V');
+      parts.push('Regulador MPPT de ' + (c.ctrlN > 1 ? c.ctrlN + ' × ' : '') + c.ctrlA + ' A');
+      parts.push('Inversor de ' + invTxt + ' W');
+    } else {
+      parts.push('Inversor de red de ' + invTxt + ' W');
+    }
+    lastSummary = 'Dimensionamiento solar (' + (c.off ? 'sistema aislado' : 'conectado a red') + ')\nConsumo: ' + fmt(c.E) + ' Wh/día · HSP ' + s.hsp + ' · PR ' + fmt(s.pr * 100) + ' %\n- ' + parts.join('\n- ') + '\n\nMemoria de cálculo\n' + mem;
+
+    box.innerHTML = '<section class="card"><h2>Resultado</h2><div class="tiles">' + tiles + '</div>' + warns + dl +
+      '<details' + (wasOpen ? ' open' : '') + '><summary>Memoria de cálculo</summary><pre class="calc">' + esc(mem) + '</pre></details>' +
+      '<div class="actions"><button type="button" class="btn" data-copy>Copiar resumen</button><span class="ok" id="copy-msg" role="status"></span></div>' +
+      '<textarea class="sum" id="sum-text" readonly hidden aria-label="Resumen para copiar"></textarea></section>';
+
+    bar.innerHTML = '<strong>' + c.total + ' × ' + fmt(s.wp) + ' Wp</strong>' + (c.off ? '<span>' + c.btot + ' baterías · ' + invTxt + ' W inv.</span>' : '<span>Inversor ' + invTxt + ' W</span>');
+  }
+
+  function update() {
+    var s = readSettings();
+    var E = 0, P = 0;
+    rows.forEach(function (r) {
+      var wh = r.w * r.qty * r.h; E += wh; P += r.w * r.qty;
+      var o = $('l' + r.id + '-wh'); if (o) o.textContent = fmt(wh);
+    });
+    $('totals').innerHTML = '<span>Consumo diario <b>' + fmt(E) + ' Wh</b></span><span>Potencia instalada <b>' + fmt(P) + ' W</b></span>';
+    render(s, calc(s));
+  }
+
+  function applyMode() {
+    var off = document.querySelector('input[name="mode"]:checked').value === 'off';
+    document.querySelectorAll('[data-off]').forEach(function (el) { el.hidden = !off; });
+    $('vmax-l').textContent = off ? 'Voc máx. del regulador (V)' : 'Voc máx. del inversor (V)';
+    $('vmin-l').textContent = off ? 'Vmín. de operación MPPT (V)' : 'Vmín. de arranque MPPT (V)';
+    $('vmax').value = off ? 150 : 600;
+    $('vmin').value = off ? 30 : 120;
+  }
+
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    var row = t.closest && t.closest('.load');
+    if (row) {
+      var r = rows.filter(function (x) { return String(x.id) === row.dataset.id; })[0];
+      var k = t.dataset.k;
+      if (r && k) r[k] = (k === 'name') ? t.value : (parseFloat(t.value) || 0);
+    }
+    if (t.id === 'hsp') $('city').value = 'custom';
+    if (['wp', 'voc', 'vmp', 'isc'].indexOf(t.id) > -1) $('ppreset').value = 'custom';
+    if (t.id === 'city' || t.id === 'ppreset' || t.id === 'chem' || t.name === 'mode' || t.id === 'preset') return;
+    update();
+  });
+
+  $('city').addEventListener('change', function () { if (this.value !== 'custom') $('hsp').value = this.value; update(); });
+  $('ppreset').addEventListener('change', function () {
+    var p = PANELS[parseInt(this.value, 10)];
+    if (p) { $('wp').value = p[1]; $('voc').value = p[2]; $('vmp').value = p[3]; $('isc').value = p[4]; }
+    update();
+  });
+  $('chem').addEventListener('change', function () { var c = CHEM[this.value]; $('dod').value = c.dod; $('ebat').value = c.eff; update(); });
+  document.querySelectorAll('input[name="mode"]').forEach(function (el) { el.addEventListener('change', function () { applyMode(); update(); }); });
+
+  $('add').addEventListener('click', function () {
+    rows.push({ id: seq++, name: '', w: 0, qty: 1, h: 1 });
+    renderLoads(); update();
+    var last = rows[rows.length - 1];
+    var inp = $('l' + last.id + '-n'); if (inp) inp.focus();
+  });
+  $('preset').addEventListener('change', function () {
+    var p = PRESETS[parseInt(this.value, 10)];
+    if (p) { rows.push({ id: seq++, name: p[0], w: p[1], qty: p[2], h: p[3] }); renderLoads(); update(); }
+    this.value = '';
+  });
+  $('loads').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-del]'); if (!b) return;
+    var id = b.closest('.load').dataset.id;
+    rows = rows.filter(function (x) { return String(x.id) !== id; });
+    renderLoads(); update();
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-copy]'); if (!b || !lastSummary) return;
+    var msg = $('copy-msg');
+    var fallback = function () { var ta = $('sum-text'); ta.value = lastSummary; ta.hidden = false; ta.focus(); ta.select(); if (msg) msg.textContent = 'Selecciona y copia el texto.'; };
+    try {
+      navigator.clipboard.writeText(lastSummary).then(function () { if (msg) msg.textContent = 'Resumen copiado'; }, fallback);
+    } catch (err) { fallback(); }
+  });
+
+  renderLoads(); applyMode(); update();
+})();
+</script>
+
+</body>
+</html>
