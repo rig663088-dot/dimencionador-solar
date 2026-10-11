@@ -1,212 +1,653 @@
 <!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
-</head>
-<body>
-<title>Dimensionador Solar</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<style>
-/* Layout: hoja de cálculo técnica. Entradas a la izquierda, resultado fijo a la derecha; en teléfono el resultado se resume en una barra inferior. */
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Dimensionador Solar</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"><style>
+/* Layout: app de una sola pantalla. Selector de sistema arriba, resultados fijos, pestañas Cargas / Sistema / Cables / Informe. */
 :root {
-  --bg: #E9EEF2;
+  --bg: #EEF1F4;
   --surface: #FFFFFF;
-  --surface-2: #F3F6F8;
-  --ink: #12202E;
-  --muted: #556575;
-  --line: #CBD5DD;
-  --accent: #16508F;
+  --surface-2: #F4F6F8;
+  --ink: #0E1B2B;
+  --muted: #5A6A7A;
+  --line: #D3DAE1;
+  --accent: #0B4F94;
   --on-accent: #FFFFFF;
-  --sun: #8F5300;
-  --sun-soft: #FBEBCB;
+  --sun: #96520A;
   --warn: #8A2D12;
-  --warn-soft: #FBE3DA;
-  --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --warn-soft: #FBE4DB;
   --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0E151C; --surface: #16202A; --surface-2: #1C2833; --ink: #E4EBF1; --muted: #97A7B6;
-    --line: #2B3A48; --accent: #7DB0EE; --on-accent: #0B1620; --sun: #F3BC52; --sun-soft: #35280D;
-    --warn: #F2A184; --warn-soft: #3A1E15; color-scheme: dark;
+    --bg: #0C131A; --surface: #151F29; --surface-2: #1B2733; --ink: #E5ECF2; --muted: #92A3B3;
+    --line: #2A3947; --accent: #7DB0EE; --on-accent: #0A1520; --sun: #F0B65A;
+    --warn: #F3A585; --warn-soft: #3A1F16; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0E151C; --surface: #16202A; --surface-2: #1C2833; --ink: #E4EBF1; --muted: #97A7B6;
-  --line: #2B3A48; --accent: #7DB0EE; --on-accent: #0B1620; --sun: #F3BC52; --sun-soft: #35280D;
-  --warn: #F2A184; --warn-soft: #3A1E15; color-scheme: dark;
+  --bg: #0C131A; --surface: #151F29; --surface-2: #1B2733; --ink: #E5ECF2; --muted: #92A3B3;
+  --line: #2A3947; --accent: #7DB0EE; --on-accent: #0A1520; --sun: #F0B65A;
+  --warn: #F3A585; --warn-soft: #3A1F16; color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
-body {
-  background: var(--bg); color: var(--ink);
-  font: 15px/1.5 var(--f-body);
-  padding-inline: 16px; padding-block: 20px 96px;
-}
-.wrap { max-width: 1120px; margin-inline: auto; display: grid; gap: 20px; }
-h1 { font: 700 clamp(30px, 6vw, 42px)/1.05 var(--f-display); margin: 0; letter-spacing: .005em; text-wrap: balance; }
-.lede { margin: 6px 0 0; color: var(--muted); max-width: 60ch; }
-header.top { display: grid; gap: 14px; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--f-body); padding-inline: 16px; padding-block: 0; }
+.app { height: 100%; max-width: 760px; margin-inline: auto; display: flex; flex-direction: column; gap: 10px; padding-block: 12px; min-height: 0; }
 
-.seg-group { display: flex; flex-wrap: wrap; gap: 0; width: fit-content; max-width: 100%; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
-.seg { position: relative; display: block; }
-.seg input { position: absolute; opacity: 0; inset: 0; }
-.seg span { display: block; padding: 9px 14px; font-weight: 500; cursor: pointer; }
-.seg input:checked + span { background: var(--accent); color: var(--on-accent); }
-.seg input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: -3px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { margin: 0; font: 600 18px/1.2 var(--f-body); letter-spacing: -.005em; }
+.top select { width: auto; min-width: 190px; font-weight: 600; }
 
-.layout { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); align-items: start; }
-@media (min-width: 900px) {
-  .layout { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); }
-  #results { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
-  .bar { display: none !important; }
-  body { padding-block: 28px 40px; }
-}
-.inputs { display: grid; gap: 16px; min-width: 0; }
+.app.simple > :not(.top):not(#simple), .app.simple .top select { display: none !important; }
+#simple { display: none; overflow: auto; min-height: 0; gap: 10px; flex-direction: column; }
+.app.simple #simple { display: flex; }
+.vw { display: inline-flex; border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; }
+.vw button { all: unset; box-sizing: border-box; padding: 6px 12px; min-height: 20px; font: 600 13px var(--f-body); color: var(--accent); cursor: pointer; }
+.vw button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.vw button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+#simple { --sred: #D32F2F; --sblue: #1565C0; --sgreen: #2EBF4F; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #simple { --sred: #F28B82; --sblue: #8AB4F8; } }
+:root[data-theme="dark"] #simple { --sred: #F28B82; --sblue: #8AB4F8; }
+#simple h2.t { margin: 0 0 6px; color: var(--sred); font: 700 15px var(--f-body); text-align: center; }
+#simple .f label { font-size: 14px; font-weight: 700; color: var(--ink); }
+#simple .f input, #simple .f select { text-align: center; background: #fff; color: #222; }
+#simple .sw { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+#simple .sw input { appearance: none; -webkit-appearance: none; width: 46px; min-height: 26px; height: 26px; border-radius: 13px; background: #cfd4d9; border: 0; position: relative; cursor: pointer; padding: 0; }
+#simple .sw input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: left .15s; }
+#simple .sw input:checked { background: var(--sgreen); }
+#simple .sw input:checked::after { left: 22px; }
+#simple .bigbtn { background: var(--sgreen); color: #08240f; }
+#simple .res h3 { background: #000; color: #fff; border-radius: 0; }
+#simple .rows div { align-items: center; border-top: 0; }
+#simple .rows dt { font-weight: 700; color: var(--ink); }
+#simple .rows dd { background: #fff; color: var(--sblue); font: 700 14px var(--f-body); text-align: center; min-width: 52%; padding: 8px 6px; border-radius: 3px; }
+#simple .rows .hl dt, #simple .rows .hl dd { color: inherit; }
+#simple .rows .hl dd { color: var(--sblue); }
+#simple .rows .sec { display: block; border: 0; padding: 12px 0 2px; }
+#simple .rows .sec dt { color: var(--sred); font-weight: 700; font-size: 15px; }
+#simple .rows .sec dd { display: none; }
+#simple .notas { white-space: pre-line; font-size: 13.5px; background: var(--surface-2); padding: 10px; border-radius: 4px; }
+.chk { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.chk input { width: 20px; min-height: 20px; }
+.bigbtn { font: 600 15px var(--f-body); background: var(--accent); color: var(--on-accent); border: 0; border-radius: 6px; min-height: 44px; cursor: pointer; }
+.bigbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.res h3 { margin: 0; padding: 7px 10px; background: var(--ink); color: var(--bg); font: 600 13px var(--f-body); text-align: center; border-radius: 4px 4px 0 0; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; min-width: 0; }
+.kpi .k { font-size: 11.5px; color: var(--muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi .v { font: 500 20px/1.2 var(--f-mono); font-variant-numeric: tabular-nums; margin-top: 2px; white-space: nowrap; }
+.kpi .u { font: 500 11px var(--f-body); color: var(--sun); margin-left: 3px; }
+.kpi .s { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; min-width: 0; }
-.card > h2, .label-h { font: 600 13px/1.2 var(--f-display); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
-.hint { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+.alert { display: none; align-items: center; justify-content: space-between; gap: 10px; background: var(--warn-soft); color: var(--warn); border-radius: 6px; padding: 7px 10px; font-size: 13px; }
+.alert.on { display: flex; }
+.alert button { all: unset; cursor: pointer; font-weight: 600; text-decoration: underline; }
+.alert button:focus-visible { outline: 2px solid var(--warn); outline-offset: 2px; }
 
-.fields { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); }
-.f { display: grid; gap: 4px; min-width: 0; align-content: start; }
-.f label { font-size: 12.5px; color: var(--muted); font-weight: 500; }
-input, select {
-  font: inherit; color: var(--ink); background: var(--surface-2);
-  border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; min-height: 40px; width: 100%; min-width: 0;
-}
+.tabs { display: grid; grid-template-columns: repeat(6, 1fr); border-bottom: 1px solid var(--line); }
+.tab { all: unset; box-sizing: border-box; text-align: center; padding: 9px 2px; font-weight: 600; font-size: 12px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+main { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 8px; }
+.pane { display: grid; gap: 12px; align-content: start; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-width: 0; }
+.card h2 { margin: 0 0 8px; font: 600 13px/1.2 var(--f-body); color: var(--muted); }
+
+input, select { font: inherit; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; min-height: 36px; width: 100%; min-width: 0; }
 input[type="number"] { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.sub-h { margin: 16px 0 10px; font: 600 12px/1 var(--f-display); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
 
-.btn { font: 600 14px var(--f-body); border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 4px; padding: 9px 14px; min-height: 40px; cursor: pointer; }
+.rowg { display: grid; grid-template-columns: minmax(0, 1fr) 46px 34px 40px 36px 46px 22px; gap: 4px; align-items: center; }
+.rowg + .rowg { margin-top: 6px; }
+.rowg.head { font-size: 11px; color: var(--muted); font-weight: 500; }
+.rowg.head span:nth-child(n+2):nth-child(-n+5) { text-align: center; }
+.rowg input { padding: 6px 3px; }
+.rowg input[type="number"] { text-align: center; }
+.rowg input[data-k="name"] { padding-inline: 6px; text-align: left; }
+.rowg output { font: 500 12.5px var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.del { all: unset; cursor: pointer; text-align: center; color: var(--muted); font-size: 18px; line-height: 30px; border-radius: 4px; }
+.del:hover { color: var(--warn); background: var(--surface-2); }
+.del:focus-visible { outline: 2px solid var(--accent); }
+.tools { display: flex; gap: 8px; margin-top: 10px; }
+.tools select { flex: 1 1 auto; }
+.btn { font: 600 13px var(--f-body); border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 4px; padding: 0 12px; min-height: 36px; cursor: pointer; white-space: nowrap; }
 .btn:hover { background: var(--surface-2); }
 .btn.solid { background: var(--accent); color: var(--on-accent); }
-.icon-btn { width: 40px; height: 40px; border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 4px; font-size: 20px; line-height: 1; cursor: pointer; }
-.icon-btn:hover { color: var(--warn); border-color: var(--warn); }
+.total { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font: 500 13px var(--f-mono); font-variant-numeric: tabular-nums; }
+.total b { color: var(--sun); font-weight: 500; }
 
-.load { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; padding: 12px 0; border-top: 1px solid var(--line); }
-.load .name { grid-column: 1 / -1; }
-.load .foot { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.wh { display: grid; justify-items: start; }
-.wh .k { font-size: 12px; color: var(--muted); }
-.wh output { font: 500 15px var(--f-mono); font-variant-numeric: tabular-nums; }
-@media (min-width: 640px) {
-  .load { grid-template-columns: minmax(0, 2fr) 88px 66px 66px 96px 40px; align-items: end; }
-  .load .name { grid-column: auto; }
-  .load .foot { display: contents; }
-  .wh { justify-items: end; padding-bottom: 8px; }
-}
-.load-tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--line); }
-.load-tools select { width: auto; flex: 1 1 200px; }
-.totals { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 12px; font-family: var(--f-mono); font-size: 14px; font-variant-numeric: tabular-nums; }
-.totals b { font-weight: 500; color: var(--sun); }
+.grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); }
+.f { display: grid; gap: 3px; min-width: 0; align-content: start; }
+.f label { font-size: 12px; color: var(--muted); }
+.f.wide { grid-column: 1 / -1; }
+details { margin-top: 2px; }
+summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--accent); padding: 4px 0; }
+details .grid { margin-top: 8px; }
+.note { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
 
-.tiles { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-.tile { background: var(--surface-2); border-radius: 4px; padding: 12px; min-width: 0; }
-.tile .t { font: 600 12px/1 var(--f-display); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
-.tile .v { margin-top: 8px; font: 500 30px/1 var(--f-mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.tile .u { font: 600 13px var(--f-display); letter-spacing: .04em; text-transform: uppercase; color: var(--sun); margin-left: 4px; }
-.tile .s { margin-top: 6px; font-size: 13px; color: var(--muted); }
-
-.warns { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
-.warns li { background: var(--warn-soft); color: var(--warn); border-radius: 4px; padding: 8px 10px; font-size: 13.5px; }
-.rows { margin: 14px 0 0; display: grid; }
-.rows div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-top: 1px solid var(--line); }
-.rows dt { color: var(--muted); }
-.rows dd { margin: 0; text-align: right; font-family: var(--f-mono); font-size: 14px; font-variant-numeric: tabular-nums; }
-.rows .hl { background: var(--sun-soft); padding-inline: 8px; margin-inline: -8px; border-radius: 3px; }
-.rows .hl dt, .rows .hl dd { color: var(--sun); font-weight: 500; }
-details { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
-summary { cursor: pointer; font-weight: 600; }
-pre.calc { margin: 10px 0 0; padding: 12px; background: var(--surface-2); border-radius: 4px; overflow-x: auto; font: 12.5px/1.6 var(--f-mono); }
-.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
-.actions .ok { color: var(--sun); font-size: 13px; }
-textarea.sum { width: 100%; margin-top: 10px; min-height: 120px; font: 12.5px/1.5 var(--f-mono); background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 10px; }
+.rows { margin: 0; display: grid; }
+.rows div { display: flex; justify-content: space-between; gap: 14px; padding: 7px 0; border-top: 1px solid var(--line); }
+.rows div:first-child { border-top: 0; }
+.rows dt { color: var(--muted); min-width: 0; }
+.rows dd { margin: 0; text-align: right; font: 500 13px var(--f-mono); font-variant-numeric: tabular-nums; min-width: 0; }
+.rows dd small { display: block; font: 400 11.5px var(--f-body); color: var(--muted); }
+.rows .hl dt, .rows .hl dd { color: var(--sun); font-weight: 600; }
+.sect { margin: 12px 0 2px; font: 600 12px var(--f-body); color: var(--muted); }
+.warns { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+.warns li { background: var(--warn-soft); color: var(--warn); border-radius: 4px; padding: 7px 9px; font-size: 13px; }
+pre.calc { margin: 8px 0 0; padding: 10px; background: var(--surface-2); border-radius: 4px; overflow-x: auto; font: 12px/1.6 var(--f-mono); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.actions .ok { font-size: 12.5px; color: var(--sun); }
+textarea.sum { width: 100%; margin-top: 8px; min-height: 110px; font: 12px/1.5 var(--f-mono); background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 8px; }
 .empty { color: var(--muted); margin: 0; }
+.foot { font-size: 11.5px; color: var(--muted); }
+@media (max-width: 380px) { .kpi .v { font-size: 17px; } }
 
-.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--accent); color: var(--on-accent); padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 10px); display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; font-size: 14px; }
-.bar strong { font: 500 15px var(--f-mono); }
-footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
-@media (prefers-reduced-motion: no-preference) { .btn, .icon-btn { transition: background .15s, color .15s, border-color .15s; } }
+/* ---- Acabado profesional ---- */
+:root { --shadow: 0 1px 2px rgba(14,27,43,.06), 0 4px 14px rgba(14,27,43,.04); --accent-2: #1C6FC0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --shadow: 0 1px 2px rgba(0,0,0,.4); } }
+:root[data-theme="dark"] { --shadow: 0 1px 2px rgba(0,0,0,.4); }
+body { -webkit-font-smoothing: antialiased; }
+.app { gap: 12px; padding-block: 14px 18px; }
+.top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 12px; align-items: center; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand .logo { flex: none; width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(145deg, var(--accent-2), var(--accent)); display: grid; place-items: center; box-shadow: var(--shadow); }
+.brand h1 { font: 700 18px/1.15 var(--f-body); letter-spacing: -.01em; }
+.brand small { display: block; font: 500 11.5px var(--f-body); color: var(--muted); letter-spacing: .02em; margin-top: 1px; }
+.top select { grid-column: 1 / -1; width: 100%; min-width: 0; min-height: 40px; border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
+.vw { border-radius: 8px; box-shadow: var(--shadow); background: var(--surface); }
+.vw button { padding: 8px 13px; }
+.card, .kpi { border-radius: 10px; box-shadow: var(--shadow); border-color: transparent; }
+.card { padding: 14px; }
+.card h2 { font: 700 14px var(--f-body); letter-spacing: -.005em; margin: 0 0 10px; }
+.kpi { padding: 10px 11px; }
+.kpi .v { font-weight: 600; }
+.tabs { background: var(--surface); border: 0; border-radius: 10px; padding: 4px; gap: 2px; box-shadow: var(--shadow); }
+.tab { padding: 9px 2px; border-radius: 7px; border-bottom: 0; margin-bottom: 0; transition: background .12s, color .12s; }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+input, select { border-radius: 7px; border-color: var(--line); }
+input:focus-visible, select:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 0; border-color: var(--accent-2); }
+.btn { border-radius: 7px; }
+.btn.solid { background: var(--accent); }
+.rows div { padding: 9px 0; }
+.rows dt { font-size: 13.5px; }
+.alert { border-radius: 10px; padding: 9px 12px; }
+.rowg:not(.head) { grid-template-columns: repeat(4, minmax(0, 1fr)) 68px; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); }
+.rowg + .rowg { margin-top: 0; }
+.rowg:not(.head) input[data-k="name"] { grid-column: 1 / 5; grid-row: 1; text-align: left; font-weight: 600; }
+.rowg:not(.head) .del { grid-column: 5; grid-row: 1; justify-self: end; }
+.rowg:not(.head) output { align-self: center; }
+.rowg.head { grid-template-columns: repeat(4, minmax(0, 1fr)) 68px; gap: 6px; padding-bottom: 4px; }
+.rowg.head span:first-child, .rowg.head span:last-child { display: none; }
+.rowg.head span:nth-child(6) { grid-column: 5; }
+.brand h1 { font-size: 16.5px; white-space: nowrap; }
+.brand small { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand .logo { width: 36px; height: 36px; }
+.brand > div { min-width: 0; }
+.brand { grid-row: 1; grid-column: 1; }
+.vw { grid-row: 1; grid-column: 2; justify-self: end; }
+.top select { grid-row: 2; }
+.kpi .s { font-size: 10.5px; }
+.rowg:not(.head) { padding: 8px 0; }
+.brand h1 { font-size: 15.5px; }
+.brand { gap: 8px; }
+.vw button { padding: 7px 9px; font-size: 12.5px; }
+
+/* Ayuda, resumen simple y WhatsApp */
+.hq { all: unset; box-sizing: border-box; display: inline-grid; place-items: center; width: 17px; height: 17px; margin-left: 6px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--accent); color: var(--accent); font: 700 11px var(--f-body); cursor: pointer; vertical-align: middle; }
+.hq[aria-expanded="true"] { background: var(--accent); color: var(--on-accent); }
+.hq:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+.hint { background: var(--surface-2); border-left: 3px solid var(--accent); border-radius: 4px; padding: 7px 9px; font-size: 12.5px; line-height: 1.4; color: var(--ink); font-weight: 400; grid-column: 1 / -1; }
+.plain { border-left: 4px solid var(--accent); }
+.plain h2 { margin-bottom: 6px; }
+.plain p { margin: 0; font-size: 14.5px; line-height: 1.55; }
+.plain b { color: var(--accent); font-weight: 600; }
+.btn.wa { background: #1FAF54; border-color: #1FAF54; color: #fff; }
+.rowg.head { display: none; }
+.lf { display: grid; gap: 2px; min-width: 0; align-content: start; }
+.lf > span { min-height: 24px; display: flex; align-items: flex-end; font-size: 10.5px; line-height: 1.15; color: var(--muted); font-weight: 500; }
+.lf.o { grid-column: 5; text-align: right; }
+.lf.o output { font: 600 13px var(--f-mono); padding-top: 9px; }
+.lf.o > span { justify-content: flex-end; }
+.lf input { text-align: center; }
+/* Vista simple con la misma paleta de la marca */
+#simple { --sred: var(--accent); --sblue: var(--accent); --sgreen: var(--accent); }
+#simple h2.t { text-align: left; font-size: 15px; margin-bottom: 8px; }
+#simple .f label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+#simple .f input, #simple .f select { background: var(--surface-2); color: var(--ink); text-align: left; font-weight: 600; }
+#simple .sw { font-size: 14px; font-weight: 500; }
+#simple .sw input:checked { background: var(--accent); }
+#simple .bigbtn { background: var(--accent); color: var(--on-accent); border-radius: 8px; min-height: 46px; letter-spacing: .02em; }
+#simple .res h3 { background: var(--accent); color: var(--on-accent); border-radius: 8px; letter-spacing: .08em; font-size: 12px; padding: 9px 10px; margin-bottom: 4px; }
+#simple .rows dt { font-weight: 500; color: var(--ink); }
+#simple .rows dd { background: var(--surface-2); color: var(--accent); font: 600 14px var(--f-body); border-radius: 6px; min-width: 46%; }
+#simple .rows .sec dt { color: var(--muted); font: 600 11.5px var(--f-body); text-transform: uppercase; letter-spacing: .08em; }
+#simple .notas { border-radius: 8px; line-height: 1.5; }
+</style><style>body{margin:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}[hidden]{display:none!important}</style></head><body><title>Dimensionador Solar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: app de una sola pantalla. Selector de sistema arriba, resultados fijos, pestañas Cargas / Sistema / Cables / Informe. */
+:root {
+  --bg: #EEF1F4;
+  --surface: #FFFFFF;
+  --surface-2: #F4F6F8;
+  --ink: #0E1B2B;
+  --muted: #5A6A7A;
+  --line: #D3DAE1;
+  --accent: #0B4F94;
+  --on-accent: #FFFFFF;
+  --sun: #96520A;
+  --warn: #8A2D12;
+  --warn-soft: #FBE4DB;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C131A; --surface: #151F29; --surface-2: #1B2733; --ink: #E5ECF2; --muted: #92A3B3;
+    --line: #2A3947; --accent: #7DB0EE; --on-accent: #0A1520; --sun: #F0B65A;
+    --warn: #F3A585; --warn-soft: #3A1F16; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C131A; --surface: #151F29; --surface-2: #1B2733; --ink: #E5ECF2; --muted: #92A3B3;
+  --line: #2A3947; --accent: #7DB0EE; --on-accent: #0A1520; --sun: #F0B65A;
+  --warn: #F3A585; --warn-soft: #3A1F16; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--f-body); padding-inline: 16px; padding-block: 0; }
+.app { height: 100%; max-width: 760px; margin-inline: auto; display: flex; flex-direction: column; gap: 10px; padding-block: 12px; min-height: 0; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { margin: 0; font: 600 18px/1.2 var(--f-body); letter-spacing: -.005em; }
+.top select { width: auto; min-width: 190px; font-weight: 600; }
+
+.app.simple > :not(.top):not(#simple), .app.simple .top select { display: none !important; }
+#simple { display: none; overflow: auto; min-height: 0; gap: 10px; flex-direction: column; }
+.app.simple #simple { display: flex; }
+.vw { display: inline-flex; border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; }
+.vw button { all: unset; box-sizing: border-box; padding: 6px 12px; min-height: 20px; font: 600 13px var(--f-body); color: var(--accent); cursor: pointer; }
+.vw button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.vw button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+#simple { --sred: #D32F2F; --sblue: #1565C0; --sgreen: #2EBF4F; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #simple { --sred: #F28B82; --sblue: #8AB4F8; } }
+:root[data-theme="dark"] #simple { --sred: #F28B82; --sblue: #8AB4F8; }
+#simple h2.t { margin: 0 0 6px; color: var(--sred); font: 700 15px var(--f-body); text-align: center; }
+#simple .f label { font-size: 14px; font-weight: 700; color: var(--ink); }
+#simple .f input, #simple .f select { text-align: center; background: #fff; color: #222; }
+#simple .sw { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+#simple .sw input { appearance: none; -webkit-appearance: none; width: 46px; min-height: 26px; height: 26px; border-radius: 13px; background: #cfd4d9; border: 0; position: relative; cursor: pointer; padding: 0; }
+#simple .sw input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: left .15s; }
+#simple .sw input:checked { background: var(--sgreen); }
+#simple .sw input:checked::after { left: 22px; }
+#simple .bigbtn { background: var(--sgreen); color: #08240f; }
+#simple .res h3 { background: #000; color: #fff; border-radius: 0; }
+#simple .rows div { align-items: center; border-top: 0; }
+#simple .rows dt { font-weight: 700; color: var(--ink); }
+#simple .rows dd { background: #fff; color: var(--sblue); font: 700 14px var(--f-body); text-align: center; min-width: 52%; padding: 8px 6px; border-radius: 3px; }
+#simple .rows .hl dt, #simple .rows .hl dd { color: inherit; }
+#simple .rows .hl dd { color: var(--sblue); }
+#simple .rows .sec { display: block; border: 0; padding: 12px 0 2px; }
+#simple .rows .sec dt { color: var(--sred); font-weight: 700; font-size: 15px; }
+#simple .rows .sec dd { display: none; }
+#simple .notas { white-space: pre-line; font-size: 13.5px; background: var(--surface-2); padding: 10px; border-radius: 4px; }
+.chk { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.chk input { width: 20px; min-height: 20px; }
+.bigbtn { font: 600 15px var(--f-body); background: var(--accent); color: var(--on-accent); border: 0; border-radius: 6px; min-height: 44px; cursor: pointer; }
+.bigbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.res h3 { margin: 0; padding: 7px 10px; background: var(--ink); color: var(--bg); font: 600 13px var(--f-body); text-align: center; border-radius: 4px 4px 0 0; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; min-width: 0; }
+.kpi .k { font-size: 11.5px; color: var(--muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi .v { font: 500 20px/1.2 var(--f-mono); font-variant-numeric: tabular-nums; margin-top: 2px; white-space: nowrap; }
+.kpi .u { font: 500 11px var(--f-body); color: var(--sun); margin-left: 3px; }
+.kpi .s { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.alert { display: none; align-items: center; justify-content: space-between; gap: 10px; background: var(--warn-soft); color: var(--warn); border-radius: 6px; padding: 7px 10px; font-size: 13px; }
+.alert.on { display: flex; }
+.alert button { all: unset; cursor: pointer; font-weight: 600; text-decoration: underline; }
+.alert button:focus-visible { outline: 2px solid var(--warn); outline-offset: 2px; }
+
+.tabs { display: grid; grid-template-columns: repeat(6, 1fr); border-bottom: 1px solid var(--line); }
+.tab { all: unset; box-sizing: border-box; text-align: center; padding: 9px 2px; font-weight: 600; font-size: 12px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+main { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 8px; }
+.pane { display: grid; gap: 12px; align-content: start; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-width: 0; }
+.card h2 { margin: 0 0 8px; font: 600 13px/1.2 var(--f-body); color: var(--muted); }
+
+input, select { font: inherit; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; min-height: 36px; width: 100%; min-width: 0; }
+input[type="number"] { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.rowg { display: grid; grid-template-columns: minmax(0, 1fr) 46px 34px 40px 36px 46px 22px; gap: 4px; align-items: center; }
+.rowg + .rowg { margin-top: 6px; }
+.rowg.head { font-size: 11px; color: var(--muted); font-weight: 500; }
+.rowg.head span:nth-child(n+2):nth-child(-n+5) { text-align: center; }
+.rowg input { padding: 6px 3px; }
+.rowg input[type="number"] { text-align: center; }
+.rowg input[data-k="name"] { padding-inline: 6px; text-align: left; }
+.rowg output { font: 500 12.5px var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.del { all: unset; cursor: pointer; text-align: center; color: var(--muted); font-size: 18px; line-height: 30px; border-radius: 4px; }
+.del:hover { color: var(--warn); background: var(--surface-2); }
+.del:focus-visible { outline: 2px solid var(--accent); }
+.tools { display: flex; gap: 8px; margin-top: 10px; }
+.tools select { flex: 1 1 auto; }
+.btn { font: 600 13px var(--f-body); border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 4px; padding: 0 12px; min-height: 36px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--surface-2); }
+.btn.solid { background: var(--accent); color: var(--on-accent); }
+.total { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font: 500 13px var(--f-mono); font-variant-numeric: tabular-nums; }
+.total b { color: var(--sun); font-weight: 500; }
+
+.grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); }
+.f { display: grid; gap: 3px; min-width: 0; align-content: start; }
+.f label { font-size: 12px; color: var(--muted); }
+.f.wide { grid-column: 1 / -1; }
+details { margin-top: 2px; }
+summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--accent); padding: 4px 0; }
+details .grid { margin-top: 8px; }
+.note { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+
+.rows { margin: 0; display: grid; }
+.rows div { display: flex; justify-content: space-between; gap: 14px; padding: 7px 0; border-top: 1px solid var(--line); }
+.rows div:first-child { border-top: 0; }
+.rows dt { color: var(--muted); min-width: 0; }
+.rows dd { margin: 0; text-align: right; font: 500 13px var(--f-mono); font-variant-numeric: tabular-nums; min-width: 0; }
+.rows dd small { display: block; font: 400 11.5px var(--f-body); color: var(--muted); }
+.rows .hl dt, .rows .hl dd { color: var(--sun); font-weight: 600; }
+.sect { margin: 12px 0 2px; font: 600 12px var(--f-body); color: var(--muted); }
+.warns { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+.warns li { background: var(--warn-soft); color: var(--warn); border-radius: 4px; padding: 7px 9px; font-size: 13px; }
+pre.calc { margin: 8px 0 0; padding: 10px; background: var(--surface-2); border-radius: 4px; overflow-x: auto; font: 12px/1.6 var(--f-mono); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.actions .ok { font-size: 12.5px; color: var(--sun); }
+textarea.sum { width: 100%; margin-top: 8px; min-height: 110px; font: 12px/1.5 var(--f-mono); background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 8px; }
+.empty { color: var(--muted); margin: 0; }
+.foot { font-size: 11.5px; color: var(--muted); }
+@media (max-width: 380px) { .kpi .v { font-size: 17px; } }
+
+/* ---- Acabado profesional ---- */
+:root { --shadow: 0 1px 2px rgba(14,27,43,.06), 0 4px 14px rgba(14,27,43,.04); --accent-2: #1C6FC0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --shadow: 0 1px 2px rgba(0,0,0,.4); } }
+:root[data-theme="dark"] { --shadow: 0 1px 2px rgba(0,0,0,.4); }
+body { -webkit-font-smoothing: antialiased; }
+.app { gap: 12px; padding-block: 14px 18px; }
+.top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 12px; align-items: center; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand .logo { flex: none; width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(145deg, var(--accent-2), var(--accent)); display: grid; place-items: center; box-shadow: var(--shadow); }
+.brand h1 { font: 700 18px/1.15 var(--f-body); letter-spacing: -.01em; }
+.brand small { display: block; font: 500 11.5px var(--f-body); color: var(--muted); letter-spacing: .02em; margin-top: 1px; }
+.top select { grid-column: 1 / -1; width: 100%; min-width: 0; min-height: 40px; border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
+.vw { border-radius: 8px; box-shadow: var(--shadow); background: var(--surface); }
+.vw button { padding: 8px 13px; }
+.card, .kpi { border-radius: 10px; box-shadow: var(--shadow); border-color: transparent; }
+.card { padding: 14px; }
+.card h2 { font: 700 14px var(--f-body); letter-spacing: -.005em; margin: 0 0 10px; }
+.kpi { padding: 10px 11px; }
+.kpi .v { font-weight: 600; }
+.tabs { background: var(--surface); border: 0; border-radius: 10px; padding: 4px; gap: 2px; box-shadow: var(--shadow); }
+.tab { padding: 9px 2px; border-radius: 7px; border-bottom: 0; margin-bottom: 0; transition: background .12s, color .12s; }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+input, select { border-radius: 7px; border-color: var(--line); }
+input:focus-visible, select:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 0; border-color: var(--accent-2); }
+.btn { border-radius: 7px; }
+.btn.solid { background: var(--accent); }
+.rows div { padding: 9px 0; }
+.rows dt { font-size: 13.5px; }
+.alert { border-radius: 10px; padding: 9px 12px; }
+.rowg:not(.head) { grid-template-columns: repeat(4, minmax(0, 1fr)) 68px; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); }
+.rowg + .rowg { margin-top: 0; }
+.rowg:not(.head) input[data-k="name"] { grid-column: 1 / 5; grid-row: 1; text-align: left; font-weight: 600; }
+.rowg:not(.head) .del { grid-column: 5; grid-row: 1; justify-self: end; }
+.rowg:not(.head) output { align-self: center; }
+.rowg.head { grid-template-columns: repeat(4, minmax(0, 1fr)) 68px; gap: 6px; padding-bottom: 4px; }
+.rowg.head span:first-child, .rowg.head span:last-child { display: none; }
+.rowg.head span:nth-child(6) { grid-column: 5; }
+.brand h1 { font-size: 16.5px; white-space: nowrap; }
+.brand small { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand .logo { width: 36px; height: 36px; }
+.brand > div { min-width: 0; }
+.brand { grid-row: 1; grid-column: 1; }
+.vw { grid-row: 1; grid-column: 2; justify-self: end; }
+.top select { grid-row: 2; }
+.kpi .s { font-size: 10.5px; }
+.rowg:not(.head) { padding: 8px 0; }
+.brand h1 { font-size: 15.5px; }
+.brand { gap: 8px; }
+.vw button { padding: 7px 9px; font-size: 12.5px; }
+
+/* Ayuda, resumen simple y WhatsApp */
+.hq { all: unset; box-sizing: border-box; display: inline-grid; place-items: center; width: 17px; height: 17px; margin-left: 6px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--accent); color: var(--accent); font: 700 11px var(--f-body); cursor: pointer; vertical-align: middle; }
+.hq[aria-expanded="true"] { background: var(--accent); color: var(--on-accent); }
+.hq:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+.hint { background: var(--surface-2); border-left: 3px solid var(--accent); border-radius: 4px; padding: 7px 9px; font-size: 12.5px; line-height: 1.4; color: var(--ink); font-weight: 400; grid-column: 1 / -1; }
+.plain { border-left: 4px solid var(--accent); }
+.plain h2 { margin-bottom: 6px; }
+.plain p { margin: 0; font-size: 14.5px; line-height: 1.55; }
+.plain b { color: var(--accent); font-weight: 600; }
+.btn.wa { background: #1FAF54; border-color: #1FAF54; color: #fff; }
+.rowg.head { display: none; }
+.lf { display: grid; gap: 2px; min-width: 0; align-content: start; }
+.lf > span { min-height: 24px; display: flex; align-items: flex-end; font-size: 10.5px; line-height: 1.15; color: var(--muted); font-weight: 500; }
+.lf.o { grid-column: 5; text-align: right; }
+.lf.o output { font: 600 13px var(--f-mono); padding-top: 9px; }
+.lf.o > span { justify-content: flex-end; }
+.lf input { text-align: center; }
+/* Vista simple con la misma paleta de la marca */
+#simple { --sred: var(--accent); --sblue: var(--accent); --sgreen: var(--accent); }
+#simple h2.t { text-align: left; font-size: 15px; margin-bottom: 8px; }
+#simple .f label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+#simple .f input, #simple .f select { background: var(--surface-2); color: var(--ink); text-align: left; font-weight: 600; }
+#simple .sw { font-size: 14px; font-weight: 500; }
+#simple .sw input:checked { background: var(--accent); }
+#simple .bigbtn { background: var(--accent); color: var(--on-accent); border-radius: 8px; min-height: 46px; letter-spacing: .02em; }
+#simple .res h3 { background: var(--accent); color: var(--on-accent); border-radius: 8px; letter-spacing: .08em; font-size: 12px; padding: 9px 10px; margin-bottom: 4px; }
+#simple .rows dt { font-weight: 500; color: var(--ink); }
+#simple .rows dd { background: var(--surface-2); color: var(--accent); font: 600 14px var(--f-body); border-radius: 6px; min-width: 46%; }
+#simple .rows .sec dt { color: var(--muted); font: 600 11.5px var(--f-body); text-transform: uppercase; letter-spacing: .08em; }
+#simple .notas { border-radius: 8px; line-height: 1.5; }
 </style>
 
-<div class="wrap">
-  <header class="top">
-    <div>
-      <h1>Dimensionador solar</h1>
-      <p class="lede">Calcula paneles, baterías, regulador e inversor a partir de tus cargas diarias. Los datos precargados son un ejemplo: cámbialos por los de tu instalación.</p>
-    </div>
-    <div class="seg-group" role="radiogroup" aria-label="Tipo de sistema">
-      <label class="seg"><input type="radio" name="mode" id="mode-off" value="off" checked><span>Aislado con baterías</span></label>
-      <label class="seg"><input type="radio" name="mode" id="mode-on" value="on"><span>Conectado a la red</span></label>
-    </div>
-  </header>
-
-  <div class="layout">
-    <div class="inputs">
-      <section class="card" aria-labelledby="h-cargas">
-        <h2 id="h-cargas">Cargas</h2>
-        <div id="loads"></div>
-        <div class="load-tools">
-          <button type="button" class="btn solid" id="add">Agregar equipo</button>
-          <select id="preset" aria-label="Agregar un equipo típico"></select>
-        </div>
-        <div class="totals" id="totals"></div>
-      </section>
-
-      <section class="card" aria-labelledby="h-sitio">
-        <h2 id="h-sitio">Sitio y rendimiento</h2>
-        <div class="fields">
-          <div class="f"><label for="city">Ciudad (referencial)</label><select id="city"></select></div>
-          <div class="f"><label for="hsp">HSP (kWh/m²·día)</label><input id="hsp" type="number" inputmode="decimal" step="0.1" min="0" value="6"></div>
-          <div class="f"><label for="pr">Rendimiento global PR (%)</label><input id="pr" type="number" inputmode="decimal" min="1" max="100" value="75"></div>
-          <div class="f"><label for="einv">Eficiencia inversor (%)</label><input id="einv" type="number" inputmode="decimal" min="1" max="100" value="92"></div>
-          <div class="f"><label for="sim">Simultaneidad de cargas (%)</label><input id="sim" type="number" inputmode="decimal" min="1" max="100" value="80"></div>
-        </div>
-        <p class="hint">Las HSP son valores aproximados. Confirma el dato de tu zona en el Atlas de Energía Solar del SENAMHI.</p>
-      </section>
-
-      <section class="card" aria-labelledby="h-panel">
-        <h2 id="h-panel">Panel solar</h2>
-        <div class="fields">
-          <div class="f"><label for="ppreset">Modelo típico</label><select id="ppreset"></select></div>
-          <div class="f"><label for="wp">Potencia (Wp)</label><input id="wp" type="number" inputmode="decimal" min="0" value="550"></div>
-          <div class="f"><label for="voc">Voc (V)</label><input id="voc" type="number" inputmode="decimal" step="0.1" min="0" value="49.6"></div>
-          <div class="f"><label for="vmp">Vmp (V)</label><input id="vmp" type="number" inputmode="decimal" step="0.1" min="0" value="41.8"></div>
-          <div class="f"><label for="isc">Isc (A)</label><input id="isc" type="number" inputmode="decimal" step="0.1" min="0" value="14"></div>
-          <div class="f"><label for="vmax" id="vmax-l">Voc máx. del regulador (V)</label><input id="vmax" type="number" inputmode="decimal" min="0" value="150"></div>
-          <div class="f"><label for="vmin" id="vmin-l">Vmín. de operación MPPT (V)</label><input id="vmin" type="number" inputmode="decimal" min="0" value="30"></div>
-        </div>
-        <p class="hint">Valores típicos. Usa los de la ficha técnica de tu panel y de tu regulador o inversor.</p>
-      </section>
-
-      <section class="card" data-off aria-labelledby="h-bat">
-        <h2 id="h-bat">Baterías</h2>
-        <div class="fields">
-          <div class="f"><label for="chem">Tecnología</label>
-            <select id="chem"><option value="lead">Ácido (plomo-ácido)</option><option value="gel">Gel</option><option value="lfp">Litio LiFePO₄</option></select></div>
-          <div class="f"><label for="dod">Descarga máx. DoD (%)</label><input id="dod" type="number" inputmode="decimal" min="1" max="100" value="50"></div>
-          <div class="f"><label for="ebat">Eficiencia batería (%)</label><input id="ebat" type="number" inputmode="decimal" min="1" max="100" value="80"></div>
-          <div class="f"><label for="days">Autonomía (días)</label><input id="days" type="number" inputmode="decimal" step="0.5" min="0.5" value="2"></div>
-          <div class="f"><label for="vsys">Tensión del sistema</label>
-            <select id="vsys"><option value="auto">Automática</option><option value="12">12 V</option><option value="24">24 V</option><option value="48">48 V</option></select></div>
-          <div class="f"><label for="vunit">Batería: tensión (V)</label><input id="vunit" type="number" inputmode="decimal" min="1" value="12"></div>
-          <div class="f"><label for="ahunit">Batería: capacidad (Ah)</label><input id="ahunit" type="number" inputmode="decimal" min="1" value="100"></div>
-        </div>
-      </section>
-    </div>
-
-    <aside id="results" aria-live="polite"></aside>
+<div class="app">
+  <div class="top">
+    <div class="brand"><span class="logo" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="2.6"/><path d="M12 1.5v1.2M5.9 3.6l.9.9M18.1 3.6l-.9.9M3.5 7h1.2M19.3 7h1.2"/><path d="M4 21l2.2-8h11.6L20 21z"/><path d="M5.2 17h13.6M10 13l-.7 8M14 13l.7 8"/></svg></span><div><h1>Dimensionador Solar</h1><small>Sistemas fotovoltaicos</small></div></div>
+    <select id="mode" aria-label="Tipo de sistema">
+      <option value="off">Off-grid (aislado)</option>
+      <option value="on">On-grid (a la red)</option>
+      <option value="hyb">Híbrido</option>
+      <option value="pump">Bombeo solar</option>
+    </select>
+    <div class="vw" role="group" aria-label="Vista"><button type="button" id="vsimple" aria-pressed="true">Simple</button><button type="button" id="vfull" aria-pressed="false">Completo</button></div>
   </div>
 
-  <footer>Este cálculo sirve para predimensionar. Verifica los resultados con las fichas técnicas de los equipos y con el Código Nacional de Electricidad antes de instalar.</footer>
-</div>
+  <section id="simple">
+    <div class="card">
+      <h2 class="t">Sistema fotovoltaico</h2>
+      <div class="grid">
+        <div class="f"><label for="sE">Consumo diario (kWh/día)</label><input id="sE" type="number" inputmode="decimal" min="0" step="any" value="2.5"></div>
+        <div class="f"><label for="sW">Potencia del panel (W)</label><input id="sW" type="number" inputmode="decimal" min="0" step="any" value="550"></div>
+        <div class="f"><label for="sc">Zona</label><select id="sc"></select></div>
+        <div class="f"><label for="sH">HSP</label><input id="sH" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div class="f"><label for="sL">Latitud (sur = negativa)</label><input id="sL" type="number" inputmode="decimal" step="any" value="-16.4"></div>
+      </div>
+      <div style="margin-top:8px">
+        <label class="sw">Ver HSP <input id="sVer" type="checkbox"></label>
+        <label class="sw">Sugerir arreglo de paneles <input id="sArr" type="checkbox"></label>
+        <label class="sw">Aislado de la red (Off Grid) <input id="sOff" type="checkbox" checked></label>
+      </div>
+      <button type="button" class="bigbtn" id="sGo" style="width:100%;margin-top:10px">Calcular</button>
+    </div>
+    <div class="card plain" id="sPlainC"><h2>En palabras simples</h2><p id="sPlain"></p></div>
+    <div class="card res"><h3>RESULTADOS</h3><dl class="rows" id="sRes"></dl></div>
+    <button type="button" class="bigbtn" data-wa="simple" style="background:#1FAF54;color:#fff">Enviar por WhatsApp</button>
+    <div class="card"><h2 class="t" style="text-align:left">Notas</h2><div class="notas" id="sNotas"></div></div>
+  </section>
 
-<div class="bar" id="bar"></div>
+  <div class="kpis" id="kpis" aria-live="polite"></div>
+  <div class="alert" id="alert"><span id="alert-t"></span><button type="button" data-goto="informe">Ver</button></div>
+
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab" role="tab" data-tab="cargas" id="tab-cargas" aria-selected="true">Cargas</button>
+    <button type="button" class="tab" role="tab" data-tab="sistema" aria-selected="false">Sistema</button>
+    <button type="button" class="tab" role="tab" data-tab="cables" aria-selected="false">Cables</button>
+    <button type="button" class="tab" role="tab" data-tab="sim" aria-selected="false">Simular</button>
+    <button type="button" class="tab" role="tab" data-tab="costos" aria-selected="false">Costos</button>
+    <button type="button" class="tab" role="tab" data-tab="informe" aria-selected="false">Informe</button>
+  </div>
+
+  <main>
+    <section class="pane" data-pane="cargas">
+      <div class="card" data-m="off on hyb">
+        <div class="rowg head"><span>Equipo</span><span>W</span><span>Cant.</span><span>h/día</span><span>Arr.×</span><span style="text-align:right">Wh</span><span></span></div>
+        <div id="loads"></div>
+        <div class="tools">
+          <select id="preset" aria-label="Agregar un equipo típico"></select>
+          <button type="button" class="btn solid" id="add">+ Equipo</button>
+        </div>
+        <div class="total" id="totals"></div>
+        <p class="note"><b>Arranque (×)</b>: cuántas veces su potencia pide un aparato al encender. Pon 1 en focos y electrónica, y 3 o más en motores y refrigeradoras.</p>
+      </div>
+      <div class="card" data-m="pump" hidden>
+        <h2>Bomba de agua</h2>
+        <div class="grid">
+          <div class="f"><label for="q">Caudal diario (m³/día)</label><input id="q" type="number" inputmode="decimal" step="0.5" min="0" value="10"></div>
+          <div class="f"><label for="hd">Altura dinámica total (m)</label><input id="hd" type="number" inputmode="decimal" min="0" value="30"></div>
+          <div class="f"><label for="hb">Horas de bombeo</label><input id="hb" type="number" inputmode="decimal" step="0.5" min="1" value="7"></div>
+          <div class="f"><label for="ep">Eficiencia global (%)</label><input id="ep" type="number" inputmode="decimal" min="1" max="100" value="40"></div>
+          <div class="f"><label for="td">Reserva de agua (días)</label><input id="td" type="number" inputmode="decimal" step="0.5" min="0" value="1"></div>
+        </div>
+        <p class="note">La altura dinámica suma la altura de elevación, las pérdidas por fricción en la tubería y la presión de salida. La eficiencia global incluye bomba, motor y variador.</p>
+      </div>
+    </section>
+
+    <section class="pane" data-pane="sistema" hidden>
+      <div class="card">
+        <h2>Ubicación y panel</h2>
+        <div class="grid">
+          <div class="f wide"><label for="city">Zona</label><select id="city"></select></div>
+          <div class="f"><label for="hsp">HSP (kWh/m²·día)</label><input id="hsp" type="number" inputmode="decimal" step="0.1" min="0" value="6"></div>
+          <div class="f"><label for="alt">Altitud (msnm)</label><input id="alt" type="number" inputmode="decimal" min="0" value="2335"></div>
+          <div class="f"><label for="tmin">Temp. mínima (°C)</label><input id="tmin" type="number" inputmode="decimal" value="3"></div>
+          <div class="f"><label for="wp">Panel (Wp)</label><input id="wp" type="number" inputmode="decimal" min="0" value="550"></div>
+          <div class="f wide"><label for="ppreset">Modelo de panel</label><select id="ppreset"></select></div>
+        </div>
+        <p class="note">Valores de zona referenciales. Confirma la radiación en el Atlas de Energía Solar del SENAMHI.</p>
+      </div>
+
+      <div class="card" data-m="off hyb">
+        <h2>Baterías</h2>
+        <div class="grid">
+          <div class="f wide"><label for="bmodel">Modelo de batería</label><select id="bmodel"></select></div>
+          <div class="f"><label for="chem">Tecnología</label>
+            <select id="chem"><option value="lead">Ácido</option><option value="gel">Gel</option><option value="lfp">Litio LiFePO₄</option></select></div>
+          <div class="f" data-m="off"><label for="days">Autonomía (días)</label><input id="days" type="number" inputmode="decimal" step="0.5" min="0.5" value="2"></div>
+          <div class="f" data-m="hyb" hidden><label for="crit">Cargas críticas (%)</label><input id="crit" type="number" inputmode="decimal" min="1" max="100" value="60"></div>
+          <div class="f" data-m="hyb" hidden><label for="bh">Respaldo (horas)</label><input id="bh" type="number" inputmode="decimal" step="0.5" min="0.5" value="6"></div>
+          <div class="f"><label for="vsys">Tensión del sistema</label>
+            <select id="vsys"><option value="auto">Automática</option><option value="12">12 V</option><option value="24">24 V</option><option value="48">48 V</option></select></div>
+          <div class="f"><label for="vunit">Batería (V)</label><input id="vunit" type="number" inputmode="decimal" min="1" value="12"></div>
+          <div class="f"><label for="ahunit">Batería (Ah)</label><input id="ahunit" type="number" inputmode="decimal" min="1" value="100"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 id="eq-h">Inversor y regulador</h2>
+        <div class="grid">
+          <div class="f wide" data-m="off"><label for="invtype">Configuración</label>
+            <select id="invtype"><option value="sep">Regulador MPPT + inversor separados</option><option value="int">Inversor-cargador con MPPT integrado</option></select></div>
+          <div class="f wide"><label for="mdl">Modelo (valores típicos)</label><select id="mdl"></select></div>
+          <div class="f" data-m="off on hyb"><label for="phase">Fases</label>
+            <select id="phase"><option value="1">Monofásico 220 V</option><option value="3">Trifásico 380 V</option></select></div>
+          <div class="f" data-m="pump" hidden><label for="phase2">Motor de la bomba</label>
+            <select id="phase2"><option value="1">Monofásico 220 V</option><option value="3">Trifásico 380 V</option></select></div>
+          <div class="f" data-m="off hyb"><label for="wave">Onda de salida</label>
+            <select id="wave"><option value="pura">Onda pura</option><option value="mod">Onda modificada</option></select></div>
+          <div class="f" data-m="off hyb"><label for="surge">Sobrecarga inversor (×)</label><input id="surge" type="number" inputmode="decimal" step="0.5" min="1" value="2"></div>
+          <div class="f" data-m="on hyb" hidden><label for="covt">Cobertura objetivo (%)</label><input id="covt" type="number" inputmode="decimal" min="1" value="100"></div>
+          <div class="f"><label for="vmax">Voc máx. entrada (V)</label><input id="vmax" type="number" inputmode="decimal" min="0" value="150"></div>
+          <div class="f"><label for="vmin">Vmín. MPPT (V)</label><input id="vmin" type="number" inputmode="decimal" min="0" value="30"></div>
+          <div class="f" data-m="on hyb" hidden><label for="imax">Corriente máx. entrada (A)</label><input id="imax" type="number" inputmode="decimal" min="1" value="15"></div>
+        </div>
+        <p class="note">Usa los datos de la ficha técnica de tu regulador, inversor o variador.</p>
+      </div>
+
+      <div class="card">
+        <details>
+          <summary>Parámetros avanzados</summary>
+          <div class="grid">
+            <div class="f"><label for="pr">Rendimiento PR (%)</label><input id="pr" type="number" inputmode="decimal" min="1" max="100" value="75"></div>
+            <div class="f" data-m="off on hyb"><label for="einv">Efic. inversor (%)</label><input id="einv" type="number" inputmode="decimal" min="1" max="100" value="92"></div>
+            <div class="f" data-m="off on hyb"><label for="sim">Simultaneidad (%)</label><input id="sim" type="number" inputmode="decimal" min="1" max="100" value="80"></div>
+            <div class="f" data-m="off hyb"><label for="dod">DoD (%)</label><input id="dod" type="number" inputmode="decimal" min="1" max="100" value="50"></div>
+            <div class="f" data-m="off hyb"><label for="ebat">Efic. batería (%)</label><input id="ebat" type="number" inputmode="decimal" min="1" max="100" value="80"></div>
+            <div class="f"><label for="voc">Voc panel (V)</label><input id="voc" type="number" inputmode="decimal" step="0.1" min="0" value="49.6"></div>
+            <div class="f"><label for="vmp">Vmp panel (V)</label><input id="vmp" type="number" inputmode="decimal" step="0.1" min="0" value="41.8"></div>
+            <div class="f"><label for="isc">Isc panel (A)</label><input id="isc" type="number" inputmode="decimal" step="0.1" min="0" value="14"></div>
+            <div class="f"><label for="bvoc">Coef. Voc (%/°C)</label><input id="bvoc" type="number" inputmode="decimal" step="0.01" min="0" value="0.27"></div>
+            <div class="f"><label for="bvmp">Coef. Vmp (%/°C)</label><input id="bvmp" type="number" inputmode="decimal" step="0.01" min="0" value="0.30"></div>
+            <div class="f"><label for="tmax">Temp. máxima (°C)</label><input id="tmax" type="number" inputmode="decimal" value="25"></div>
+          </div>
+          <p class="note">La temperatura mínima sube el Voc del panel y la máxima baja su Vmp. Ambos afectan cuántos paneles caben en serie.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="pane" data-pane="cables" hidden>
+      <div class="card">
+        <h2>Distancias y caída de tensión</h2>
+        <div class="grid">
+          <div class="f"><label for="ldc">Paneles → equipo (m)</label><input id="ldc" type="number" inputmode="decimal" min="0" value="15"></div>
+          <div class="f"><label for="ddc">Caída DC (%)</label><input id="ddc" type="number" inputmode="decimal" step="0.5" min="0.1" value="2"></div>
+          <div class="f" data-m="off hyb"><label for="lbat">Batería → inversor (m)</label><input id="lbat" type="number" inputmode="decimal" min="0" value="2"></div>
+          <div class="f" data-m="off hyb"><label for="dbat">Caída batería (%)</label><input id="dbat" type="number" inputmode="decimal" step="0.5" min="0.1" value="1"></div>
+          <div class="f"><label for="lac">Salida AC (m)</label><input id="lac" type="number" inputmode="decimal" min="0" value="20"></div>
+          <div class="f"><label for="dac">Caída AC (%)</label><input id="dac" type="number" inputmode="decimal" step="0.5" min="0.1" value="3"></div>
+        </div>
+      </div>
+      <div class="card" id="cables"></div>
+    </section>
+
+    <section class="pane" data-pane="sim" hidden>
+      <div class="card">
+        <h2>Simulación de un día</h2>
+        <div class="grid">
+          <div class="f" data-m="off on hyb"><label for="simperfil">Cuándo usas la energía</label><select id="simperfil"><option value="casa">Casa (mañana y noche)</option><option value="dia">Solo de día</option><option value="noche">Solo de noche</option><option value="parejo">Parejo las 24 h</option></select></div>
+          <div class="f"><label for="simh">Hora: <b id="simhv">12:00</b></label><input id="simh" type="range" min="0" max="23" value="12"></div>
+        </div>
+      </div>
+      <div class="card" id="simout"></div>
+    </section>
+
+    <section class="pane" data-pane="costos" hidden>
+      <div class="card">
+        <h2>Precios en soles (S/)</h2>
+        <div class="grid">
+          <div class="f"><label for="cpan">Panel (cada uno)</label><input id="cpan" type="number" inputmode="decimal" min="0" step="any" placeholder="0.00"></div>
+          <div class="f" data-m="off hyb"><label for="cbat">Batería (cada una)</label><input id="cbat" type="number" inputmode="decimal" min="0" step="any" placeholder="0.00"></div>
+          <div class="f" data-m="off"><label for="creg">Regulador MPPT</label><input id="creg" type="number" inputmode="decimal" min="0" step="any" placeholder="0.00"></div>
+          <div class="f"><label for="cinv" id="cinv-l">Inversor</label><input id="cinv" type="number" inputmode="decimal" min="0" step="any" placeholder="0.00"></div>
+          <div class="f" data-m="pump" hidden><label for="cbom">Bomba</label><input id="cbom" type="number" inputmode="decimal" min="0" step="any" placeholder="0.00"></div>
+          <div class="f"><label for="cglob">Cables, protecciones y estructura</label><input id="cglob" type="number" inputmode="decimal" min="0" step="any" placeholder="0.00"></div>
+          <div class="f" data-m="on hyb" hidden><label for="tar">Tarifa de luz (S/ por kWh)</label><input id="tar" type="number" inputmode="decimal" min="0" step="any" placeholder="0.00"></div>
+        </div>
+        <p class="note">Escribe los precios de tu proveedor. La tarifa por kWh está en tu recibo de luz.</p>
+      </div>
+      <div class="card" id="costs"></div>
+    </section>
+
+    <section class="pane" data-pane="informe" hidden>
+      <div id="report"></div>
+      <p class="foot">Cálculo de predimensionamiento. Verifica con las fichas técnicas y con el Código Nacional de Electricidad antes de instalar.</p>
+    </section>
+  </main>
+</div>
 
 <script>
 (function () {
@@ -215,200 +656,578 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
   var fmt = function (x, d) { d = d || 0; return x.toLocaleString('es-PE', { minimumFractionDigits: d, maximumFractionDigits: d }); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
 
-  var CITIES = [['Arequipa', 6.0], ['Tacna', 5.8], ['Moquegua', 6.0], ['Puno', 5.8], ['Cusco', 5.3], ['Ayacucho', 5.5], ['Huancayo', 5.2], ['Piura', 5.5], ['Trujillo', 5.0], ['Lima', 4.0], ['Iquitos', 4.5]];
+  /* nombre, región, HSP, altitud, Tmín, Tmáx */
+  var CITIES = [
+    ['Arequipa', 'Sur', 6.0, 2335, 3, 25], ['Tacna', 'Costa', 5.6, 562, 9, 28], ['Moquegua', 'Sur', 6.0, 1410, 5, 30],
+    ['Nasca', 'Costa', 6.0, 588, 8, 33], ['Ica', 'Costa', 5.6, 406, 8, 33], ['Lima', 'Costa', 4.0, 150, 12, 28],
+    ['Trujillo', 'Costa', 5.0, 34, 14, 29], ['Chiclayo', 'Costa', 5.3, 30, 15, 31], ['Piura', 'Costa', 5.6, 29, 15, 35], ['Tumbes', 'Costa', 5.3, 7, 17, 33],
+    ['Puno', 'Sierra', 5.7, 3830, -4, 18], ['Juliaca', 'Sierra', 5.7, 3825, -8, 20], ['Cusco', 'Sierra', 5.3, 3400, -1, 22],
+    ['Abancay', 'Sierra', 5.3, 2370, 6, 26], ['Ayacucho', 'Sierra', 5.5, 2750, 4, 26], ['Huancavelica', 'Sierra', 5.3, 3680, -3, 20],
+    ['Huancayo', 'Sierra', 5.2, 3250, -1, 22], ['Cerro de Pasco', 'Sierra', 5.0, 4300, -6, 14], ['Huánuco', 'Sierra', 5.0, 1900, 8, 28],
+    ['Huaraz', 'Sierra', 5.3, 3050, 1, 24], ['Cajamarca', 'Sierra', 5.0, 2750, 3, 24],
+    ['Tarapoto', 'Selva', 4.6, 350, 18, 34], ['Moyobamba', 'Selva', 4.5, 860, 15, 31], ['Tingo María', 'Selva', 4.3, 660, 18, 32],
+    ['Pucallpa', 'Selva', 4.5, 150, 19, 34], ['Iquitos', 'Selva', 4.4, 106, 19, 33], ['Quillabamba', 'Selva', 4.6, 1050, 13, 32], ['Puerto Maldonado', 'Selva', 4.7, 200, 16, 35]
+  ];
   var PANELS = [
-    ['550 Wp (monocristalino 144 celdas)', 550, 49.6, 41.8, 14.0],
-    ['450 Wp (monocristalino 108 celdas)', 450, 41.1, 34.2, 13.9],
-    ['330 Wp (policristalino 72 celdas)', 330, 45.6, 37.8, 9.3],
-    ['100 Wp (panel de 12 V)', 100, 22.5, 18.5, 5.9]
+    ['670 Wp bifacial', 670, 46.1, 38.4, 18.4],
+    ['600 Wp', 600, 41.6, 34.8, 18.2],
+    ['580 Wp bifacial', 580, 51.9, 43.5, 14.1],
+    ['550 Wp', 550, 49.6, 41.8, 14.0],
+    ['550 Wp bifacial', 550, 49.7, 41.7, 14.1],
+    ['450 Wp', 450, 41.1, 34.2, 13.9],
+    ['450 Wp bifacial', 450, 41.3, 34.4, 13.9],
+    ['400 Wp', 400, 37.2, 31.0, 13.5],
+    ['330 Wp', 330, 45.6, 37.8, 9.3],
+    ['250 Wp', 250, 37.5, 30.5, 8.9],
+    ['100 Wp (12 V)', 100, 22.5, 18.5, 5.9]
   ];
+  /* nombre, tecnología, V, Ah */
+  var BATS = [
+    ['Ácido 12 V · 100 Ah', 'lead', 12, 100], ['Ácido 12 V · 150 Ah', 'lead', 12, 150], ['Ácido 12 V · 200 Ah', 'lead', 12, 200],
+    ['Ácido 24 V · 100 Ah', 'lead', 24, 100], ['Ácido 24 V · 150 Ah', 'lead', 24, 150], ['Ácido 24 V · 200 Ah', 'lead', 24, 200],
+    ['Gel 12 V · 100 Ah', 'gel', 12, 100], ['Gel 12 V · 150 Ah', 'gel', 12, 150], ['Gel 12 V · 200 Ah', 'gel', 12, 200],
+    ['Gel 24 V · 100 Ah', 'gel', 24, 100], ['Gel 24 V · 150 Ah', 'gel', 24, 150], ['Gel 24 V · 200 Ah', 'gel', 24, 200],
+    ['Litio 12 V · 100 Ah', 'lfp', 12.8, 100], ['Litio 12 V · 200 Ah', 'lfp', 12.8, 200],
+    ['Litio 24 V · 100 Ah', 'lfp', 25.6, 100], ['Litio 24 V · 200 Ah', 'lfp', 25.6, 200],
+    ['Litio 48 V · 100 Ah', 'lfp', 51.2, 100], ['Litio 48 V · 200 Ah', 'lfp', 51.2, 200]
+  ];
+  /* Modelos típicos de mercado, sin marca. p = potencia en W, a = corriente en A. Confirma en la ficha técnica. */
+  var MODELS = {
+    offsep: [
+      { n: 'Regulador MPPT 100 V · 30 A', a: 30, vmax: 100, vmin: 20 }, { n: 'Regulador MPPT 100 V · 50 A', a: 50, vmax: 100, vmin: 20 },
+      { n: 'Regulador MPPT 150 V · 35 A', a: 35, vmax: 150, vmin: 25 }, { n: 'Regulador MPPT 150 V · 60 A', a: 60, vmax: 150, vmin: 25 },
+      { n: 'Regulador MPPT 150 V · 70 A', a: 70, vmax: 150, vmin: 25 }, { n: 'Regulador MPPT 150 V · 100 A', a: 100, vmax: 150, vmin: 25 },
+      { n: 'Regulador MPPT 250 V · 70 A', a: 70, vmax: 250, vmin: 30 }, { n: 'Regulador MPPT 250 V · 100 A', a: 100, vmax: 250, vmin: 30 }
+    ],
+    offint: [
+      { n: 'Inversor-cargador 1 kW · 12 V · PV hasta 100 V', p: 1000, vsys: 12, vmax: 100, vmin: 20, ph: 1 },
+      { n: 'Inversor-cargador 2 kW · 24 V · PV 30–80 V', p: 2000, vsys: 24, vmax: 102, vmin: 30, ph: 1 },
+      { n: 'Inversor-cargador 3 kW · 24 V · PV 30–115 V', p: 3000, vsys: 24, vmax: 145, vmin: 30, ph: 1 },
+      { n: 'Inversor-cargador 5 kW · 48 V · PV 60–115 V', p: 5000, vsys: 48, vmax: 145, vmin: 60, ph: 1 },
+      { n: 'Inversor-cargador 5 kW · 48 V · PV 120–450 V', p: 5000, vsys: 48, vmax: 500, vmin: 120, ph: 1 },
+      { n: 'Inversor-cargador 6,2 kW · 48 V · PV 90–450 V', p: 6200, vsys: 48, vmax: 500, vmin: 90, ph: 1 }
+    ],
+    on: [
+      { n: 'Monofásico 3 kW · MPPT 80–550 V · 12 A', p: 3000, vmax: 600, vmin: 80, imax: 12, ph: 1 },
+      { n: 'Monofásico 5 kW · MPPT 80–550 V · 13 A', p: 5000, vmax: 600, vmin: 80, imax: 13, ph: 1 },
+      { n: 'Monofásico 8 kW · MPPT 90–550 V · 16 A', p: 8000, vmax: 600, vmin: 90, imax: 16, ph: 1 },
+      { n: 'Trifásico 10 kW · MPPT 200–850 V · 16 A', p: 10000, vmax: 1000, vmin: 200, imax: 16, ph: 3 },
+      { n: 'Trifásico 15 kW · MPPT 200–850 V · 26 A', p: 15000, vmax: 1000, vmin: 200, imax: 26, ph: 3 },
+      { n: 'Trifásico 20 kW · MPPT 200–850 V · 32 A', p: 20000, vmax: 1000, vmin: 200, imax: 32, ph: 3 }
+    ],
+    hyb: [
+      { n: 'Híbrido monofásico 3,6 kW · 48 V · MPPT 90–520 V · 13 A', p: 3600, vsys: 48, vmax: 550, vmin: 90, imax: 13, ph: 1 },
+      { n: 'Híbrido monofásico 5 kW · 48 V · MPPT 90–520 V · 13 A', p: 5000, vsys: 48, vmax: 550, vmin: 90, imax: 13, ph: 1 },
+      { n: 'Híbrido monofásico 8 kW · 48 V · MPPT 90–520 V · 16 A', p: 8000, vsys: 48, vmax: 550, vmin: 90, imax: 16, ph: 1 },
+      { n: 'Híbrido trifásico 10 kW · 48 V · MPPT 160–950 V · 16 A', p: 10000, vsys: 48, vmax: 1000, vmin: 160, imax: 16, ph: 3 }
+    ],
+    pump: [
+      { n: 'Variador solar 0,75 kW · monofásico · 150–360 V', p: 750, vmax: 400, vmin: 150, ph: 1 },
+      { n: 'Variador solar 1,5 kW · monofásico · 150–360 V', p: 1500, vmax: 400, vmin: 150, ph: 1 },
+      { n: 'Variador solar 2,2 kW · trifásico · 300–750 V', p: 2200, vmax: 800, vmin: 300, ph: 3 },
+      { n: 'Variador solar 4 kW · trifásico · 300–750 V', p: 4000, vmax: 800, vmin: 300, ph: 3 },
+      { n: 'Variador solar 7,5 kW · trifásico · 300–750 V', p: 7500, vmax: 800, vmin: 300, ph: 3 }
+    ]
+  };
   var CHEM = { lead: { dod: 50, eff: 80 }, gel: { dod: 50, eff: 85 }, lfp: { dod: 80, eff: 95 } };
+  /* nombre, W, cantidad, horas, factor de arranque */
   var PRESETS = [
-    ['Foco LED', 9, 1, 5], ['Refrigeradora', 150, 1, 8], ['Televisor LED 32"', 60, 1, 4], ['Laptop', 65, 1, 5],
-    ['Router Wi-Fi', 12, 1, 24], ['Cámara de videovigilancia', 12, 1, 24], ['Central de alarma y sirena', 15, 1, 24],
-    ['Bomba de agua 1/2 HP', 370, 1, 1], ['Ventilador', 50, 1, 6], ['Cargador de celular', 10, 1, 3], ['Licuadora', 400, 1, 0.2]
+    ['Foco LED', 9, 1, 5, 1], ['Refrigeradora', 150, 1, 8, 3], ['Televisor LED 32"', 60, 1, 4, 1], ['Laptop', 65, 1, 5, 1],
+    ['Router Wi-Fi', 12, 1, 24, 1], ['Cámara de videovigilancia', 12, 1, 24, 1], ['Central de alarma y sirena', 15, 1, 24, 1],
+    ['Bomba de agua 1/2 HP', 370, 1, 1, 3], ['Ventilador', 50, 1, 6, 2], ['Cargador de celular', 10, 1, 3, 1], ['Licuadora', 400, 1, 0.2, 2],
+    ['Congeladora', 200, 1, 8, 3], ['Lavadora', 500, 1, 1, 2], ['Microondas', 1200, 1, 0.3, 1]
   ];
-  var INV = [300, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000];
-  var CTRL = [10, 20, 30, 40, 50, 60, 80, 100];
+  var STD = {
+    inv1: [300, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000, 12000, 15000],
+    inv3: [3000, 4000, 5000, 6000, 8000, 10000, 12000, 15000, 20000, 30000, 50000],
+    ctrl: [10, 20, 30, 40, 50, 60, 80, 100],
+    vfd: [0.37, 0.55, 0.75, 1.1, 1.5, 2.2, 3, 4, 5.5, 7.5, 11, 15, 18.5, 22, 30, 37],
+    hp: [0.25, 0.33, 0.5, 0.75, 1, 1.5, 2, 3, 5, 7.5, 10, 15, 20],
+    fuse: [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630],
+    sec: [1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120],
+    amp: [15, 21, 28, 36, 50, 68, 89, 111, 134, 171, 207, 239]
+  };
+  var nextStd = function (list, x) { for (var i = 0; i < list.length; i++) if (list[i] >= x - 1e-9) return list[i]; return null; };
+  var pickSec = function (sd, ia) { for (var i = 0; i < STD.sec.length; i++) if (STD.sec[i] >= sd && STD.amp[i] >= ia) return STD.sec[i]; return null; };
+  var secTxt = function (s) { return s ? s + ' mm²' : 'más de 120 mm²'; };
 
   var rows = [
-    { id: 1, name: 'Focos LED', w: 9, qty: 6, h: 5 },
-    { id: 2, name: 'Refrigeradora', w: 150, qty: 1, h: 8 },
-    { id: 3, name: 'Televisor LED 32"', w: 60, qty: 1, h: 4 },
-    { id: 4, name: 'Router Wi-Fi', w: 12, qty: 1, h: 24 },
-    { id: 5, name: 'Laptop', w: 65, qty: 1, h: 4 }
+    { id: 1, name: 'Focos LED', w: 9, qty: 6, h: 5, s: 1 },
+    { id: 2, name: 'Refrigeradora', w: 150, qty: 1, h: 8, s: 3 },
+    { id: 3, name: 'Televisor LED 32"', w: 60, qty: 1, h: 4, s: 1 },
+    { id: 4, name: 'Router Wi-Fi', w: 12, qty: 1, h: 24, s: 1 },
+    { id: 5, name: 'Laptop', w: 65, qty: 1, h: 4, s: 1 }
   ];
-  var seq = 6;
-  var lastSummary = '';
+  var seq = 6, lastSummary = '', shareSummary = '', simpleSummary = '', curMdl = null;
 
-  $('city').innerHTML = CITIES.map(function (c) { return '<option value="' + c[1] + '">' + c[0] + ' (' + fmt(c[1], 1) + ')</option>'; }).join('') + '<option value="custom">Personalizado</option>';
+  $('bmodel').innerHTML = BATS.map(function (b, i) { return '<option value="' + i + '">' + b[0] + '</option>'; }).join('') + '<option value="custom">Personalizado</option>';
+  function fillModels() {
+    var m = $('mode').value, key = m === 'off' ? ($('invtype').value === 'sep' ? 'offsep' : 'offint') : m;
+    curMdl = null;
+    $('mdl').dataset.key = key;
+    $('mdl').innerHTML = '<option value="custom">Personalizado</option>' + MODELS[key].map(function (d, i) { return '<option value="' + i + '">' + d.n + '</option>'; }).join('');
+  }
+  var DEF = { off: [150, 30, 15], on: [600, 120, 15], hyb: [500, 120, 18], pump: [400, 150, 15] };
+
+  var groups = ['Costa', 'Sur', 'Sierra', 'Selva'];
+  $('city').innerHTML = groups.map(function (g) {
+    return '<optgroup label="' + g + '">' + CITIES.map(function (c, i) { return c[1] === g ? '<option value="' + i + '">' + c[0] + ' · ' + fmt(c[2], 1) + ' HSP · ' + fmt(c[3]) + ' m</option>' : ''; }).join('') + '</optgroup>';
+  }).join('') + '<option value="custom">Otra zona</option>';
   $('ppreset').innerHTML = PANELS.map(function (p, i) { return '<option value="' + i + '">' + p[0] + '</option>'; }).join('') + '<option value="custom">Personalizado</option>';
+  $('ppreset').value = '3';
   $('preset').innerHTML = '<option value="">Agregar equipo típico…</option>' + PRESETS.map(function (p, i) { return '<option value="' + i + '">' + p[0] + ' · ' + p[1] + ' W</option>'; }).join('');
 
   function renderLoads() {
     $('loads').innerHTML = rows.map(function (r) {
       var p = 'l' + r.id;
-      return '<div class="load" data-id="' + r.id + '">' +
-        '<div class="f name"><label for="' + p + '-n">Equipo</label><input id="' + p + '-n" data-k="name" value="' + esc(r.name) + '"></div>' +
-        '<div class="f"><label for="' + p + '-w">Potencia (W)</label><input id="' + p + '-w" data-k="w" type="number" inputmode="decimal" min="0" step="any" value="' + r.w + '"></div>' +
-        '<div class="f"><label for="' + p + '-q">Cantidad</label><input id="' + p + '-q" data-k="qty" type="number" inputmode="decimal" min="0" step="1" value="' + r.qty + '"></div>' +
-        '<div class="f"><label for="' + p + '-h">Horas/día</label><input id="' + p + '-h" data-k="h" type="number" inputmode="decimal" min="0" max="24" step="any" value="' + r.h + '"></div>' +
-        '<div class="foot"><div class="wh"><span class="k">Wh/día</span><output id="' + p + '-wh"></output></div>' +
-        '<button type="button" class="icon-btn" data-del aria-label="Quitar ' + esc(r.name || 'equipo') + '">×</button></div></div>';
+      return '<div class="rowg" data-id="' + r.id + '">' +
+        '<input id="' + p + '-n" data-k="name" aria-label="Equipo" value="' + esc(r.name) + '">' +
+        '<label class="lf"><span>Potencia (W)</span><input id="' + p + '-w" data-k="w" aria-label="Potencia en W" type="number" inputmode="decimal" min="0" step="any" value="' + r.w + '"></label>' +
+        '<label class="lf"><span>Cantidad</span><input id="' + p + '-q" data-k="qty" aria-label="Cantidad" type="number" inputmode="decimal" min="0" step="1" value="' + r.qty + '"></label>' +
+        '<label class="lf"><span>Horas al día</span><input id="' + p + '-h" data-k="h" aria-label="Horas por día" type="number" inputmode="decimal" min="0" max="24" step="any" value="' + r.h + '"></label>' +
+        '<label class="lf"><span>Arranque (×)</span><input id="' + p + '-s" data-k="s" aria-label="Factor de arranque" type="number" inputmode="decimal" min="1" step="0.5" value="' + r.s + '"></label>' +
+        '<label class="lf o"><span>Energía (Wh/día)</span><output id="' + p + '-wh"></output></label>' +
+        '<button type="button" class="del" data-del aria-label="Quitar ' + esc(r.name || 'equipo') + '">×</button></div>';
     }).join('');
   }
 
   function readSettings() {
+    var m = $('mode').value;
     return {
-      mode: document.querySelector('input[name="mode"]:checked').value,
-      hsp: num('hsp'), pr: num('pr') / 100, einv: num('einv') / 100, sim: num('sim') / 100,
-      wp: num('wp'), voc: num('voc'), vmp: num('vmp'), isc: num('isc'), vmax: num('vmax'), vmin: num('vmin'),
-      dod: num('dod') / 100, ebat: num('ebat') / 100, days: num('days'), vsel: $('vsys').value,
-      vunit: num('vunit'), ahunit: num('ahunit')
+      mode: m, hsp: num('hsp'), alt: num('alt'), tmin: num('tmin'), tmax: num('tmax'),
+      pr: num('pr') / 100, einv: num('einv') / 100, sim: num('sim') / 100,
+      wp: num('wp'), voc: num('voc'), vmp: num('vmp'), isc: num('isc'), bvoc: num('bvoc') / 100, bvmp: num('bvmp') / 100,
+      vmax: num('vmax'), vmin: num('vmin'), imax: num('imax'),
+      dod: num('dod') / 100, ebat: num('ebat') / 100, days: num('days'), vsel: $('vsys').value, vunit: num('vunit'), ahunit: num('ahunit'),
+      crit: num('crit') / 100, bh: num('bh'), covt: num('covt') / 100,
+      invtype: $('invtype').value, phase: parseInt(m === 'pump' ? $('phase2').value : $('phase').value, 10), wave: $('wave').value, surge: Math.max(1, num('surge')),
+      q: num('q'), hd: num('hd'), hb: num('hb'), ep: num('ep') / 100, td: num('td'), mdl: curMdl
     };
   }
 
-  function calc(s) {
-    var E = 0, Pins = 0;
-    rows.forEach(function (r) { E += r.w * r.qty * r.h; Pins += r.w * r.qty; });
-    var off = s.mode === 'off';
-    var bad = E <= 0 || s.wp <= 0 || s.hsp <= 0 || s.pr <= 0 || s.einv <= 0 || (off && (s.ebat <= 0 || s.dod <= 0 || s.days <= 0 || s.vunit <= 0 || s.ahunit <= 0));
-    if (bad) return { invalid: true, E: E, Pins: Pins };
-
-    var c = { E: E, Pins: Pins, off: off, warns: [] };
-    c.Pmax = Pins * s.sim;
-    c.Ereq = off ? E / (s.einv * s.ebat) : E / s.einv;
-    c.perPanel = s.wp * s.hsp * s.pr;
-    c.N = Math.max(1, Math.ceil(c.Ereq / c.perPanel - 1e-9));
-
-    var KT = 1.15;
-    var smax = (s.voc > 0 && s.vmax > 0) ? Math.floor(s.vmax / (s.voc * KT)) : c.N;
-    var smin = (s.vmp > 0 && s.vmin > 0) ? Math.ceil(s.vmin / s.vmp) : 1;
-    c.smax = smax; c.smin = smin;
-    if (smax < 1) c.warns.push('Un solo panel ya supera la tensión máxima de entrada (Voc corregida ' + fmt(s.voc * KT, 1) + ' V). Elige otro panel o un equipo con mayor Vmáx.');
-    var lo = Math.max(smin, 1), hi = Math.max(Math.min(smax, c.N), 1);
-    var ser = 0;
+  /* Define cuántos paneles van en serie y en paralelo para N paneles. */
+  function arrayCfg(N, s, c) {
+    var smax = (c.vocCold > 0 && s.vmax > 0) ? Math.floor(s.vmax / c.vocCold) : N;
+    var smin = (c.vmpHot > 0 && s.vmin > 0) ? Math.ceil(s.vmin / c.vmpHot) : 1;
+    if (smax < 1) c.warns.push('Un solo panel supera la tensión máxima de entrada (Voc en frío ' + fmt(c.vocCold, 1) + ' V). Elige otro panel o un equipo con mayor Vmáx.');
+    var lo = Math.max(smin, 1), hi = Math.max(Math.min(smax, N), 1), ser = 0;
     if (lo > hi) {
       ser = hi;
-      c.warns.push('Con la ventana MPPT indicada se necesitan entre ' + smin + ' y ' + Math.max(smax, 0) + ' paneles en serie, y eso no encaja con ' + c.N + ' paneles. Revisa Vmín., Vmáx. o el modelo de panel.');
+      c.warns.push('Con la ventana MPPT se necesitan entre ' + smin + ' y ' + Math.max(smax, 0) + ' paneles en serie, y eso no encaja con ' + N + ' paneles. Revisa Vmín., Vmáx. o el modelo de panel.');
     } else {
-      for (var k = hi; k >= lo; k--) { if (c.N % k === 0) { ser = k; break; } }
+      for (var k = hi; k >= lo; k--) { if (N % k === 0) { ser = k; break; } }
       if (!ser) ser = hi;
     }
-    c.ser = ser; c.par = Math.ceil(c.N / ser); c.total = c.ser * c.par;
-    if (c.total > c.N) c.warns.push('Para completar el arreglo se usan ' + c.total + ' paneles (' + c.ser + ' en serie × ' + c.par + ' en paralelo) en lugar de ' + c.N + '.');
+    c.smin = smin; c.smax = smax; c.ser = ser; c.par = Math.ceil(N / ser); c.total = c.ser * c.par;
+    if (c.total > N) c.warns.push('Para completar el arreglo se usan ' + c.total + ' paneles (' + c.ser + ' en serie × ' + c.par + ' en paralelo) en lugar de ' + N + '.');
     c.Pfv = c.total * s.wp;
-    c.Voc = c.ser * s.voc * KT;
+    c.Voc = c.ser * c.vocCold;
+    c.Vmp = c.ser * s.vmp;
     c.Isc = c.par * s.isc;
+    c.Imp = c.par * (s.vmp > 0 ? s.wp / s.vmp : 0);
     c.Egen = c.Pfv * s.hsp * s.pr;
-    c.cov = (off ? c.Egen * s.einv * s.ebat : c.Egen * s.einv) / E;
+  }
 
-    if (off) {
-      c.vsys = s.vsel === 'auto' ? (c.Pfv <= 800 ? 12 : (c.Pfv <= 2400 ? 24 : 48)) : parseFloat(s.vsel);
-      c.Cwh = E * s.days / (s.dod * s.einv);
+  /* Compara el modelo elegido con lo que pide el cálculo. */
+  function checkModel(s, c) {
+    var d = s.mdl; if (!d) return;
+    if (c.mode === 'pump') {
+      if (d.p < c.vfd * 1000 - 1) c.warns.push('El variador elegido (' + fmt(d.p) + ' W) es menor que el requerido (' + fmt(c.vfd * 1000) + ' W).');
+    } else if (c.mode === 'on') {
+      if (c.Pfv / d.p > 1.5) c.warns.push('El modelo de ' + fmt(d.p) + ' W queda corto para ' + fmt(c.Pfv) + ' Wp de paneles (relación ' + fmt(c.Pfv / d.p, 2) + ').');
+      if (c.Pfv / d.p < 0.8) c.warns.push('El modelo de ' + fmt(d.p) + ' W es grande para ' + fmt(c.Pfv) + ' Wp de paneles. Podrías usar uno menor.');
+    } else if (c.mode === 'hyb') {
+      if (d.p < c.invStd) c.warns.push('El modelo de ' + fmt(d.p) + ' W es menor que el inversor requerido (' + fmt(c.invStd) + ' W).');
+    } else if (s.invtype === 'sep') {
+      if (d.a && c.Ictrl > d.a) c.warns.push('El regulador de ' + d.a + ' A no alcanza para ' + fmt(c.Ictrl) + ' A. Usa ' + Math.ceil(c.Ictrl / d.a) + ' reguladores iguales, cada uno con su arreglo.');
+    } else {
+      if (d.p < c.invStd) c.warns.push('El modelo de ' + fmt(d.p) + ' W es menor que el inversor requerido (' + fmt(c.invStd) + ' W).');
+      if (d.vsys && d.vsys !== c.vsys) c.warns.push('El modelo trabaja a ' + d.vsys + ' V y el sistema calculó ' + c.vsys + ' V. Ajusta la tensión del sistema.');
+    }
+  }
+
+  function calc(s) {
+    var m = s.mode, pump = m === 'pump', off = m === 'off', on = m === 'on', hyb = m === 'hyb';
+    var c = { mode: m, warns: [] };
+    var E = 0, Pins = 0, Smax = 0;
+    rows.forEach(function (r) { E += r.w * r.qty * r.h; Pins += r.w * r.qty; Smax = Math.max(Smax, r.w * Math.max(0, r.s - 1)); });
+    c.E = E; c.Pins = Pins;
+    var base = s.wp > 0 && s.hsp > 0 && s.pr > 0 && s.voc > 0 && s.vmp > 0 && s.isc > 0;
+    var bat = s.ebat > 0 && s.dod > 0 && s.vunit > 0 && s.ahunit > 0;
+    var bad = !base;
+    if (pump) bad = bad || !(s.q > 0 && s.hd > 0 && s.hb > 0 && s.ep > 0);
+    else bad = bad || !(E > 0 && s.einv > 0 && s.sim > 0);
+    if (off) bad = bad || !(bat && s.days > 0);
+    if (hyb) bad = bad || !(bat && s.crit > 0 && s.bh > 0 && s.covt > 0);
+    if (on) bad = bad || !(s.covt > 0);
+    if (bad) return { invalid: true, mode: m };
+
+    c.vocCold = s.voc * (1 + s.bvoc * (25 - s.tmin));
+    c.vmpHot = s.vmp * (1 - s.bvmp * ((s.tmax + 25) - 25));
+    c.derate = s.alt > 1000 ? Math.max(0.5, 1 - (s.alt - 1000) / 10000) : 1;
+    if (s.alt > 4000) c.warns.push('A ' + fmt(s.alt) + ' msnm muchos equipos pierden garantía o no arrancan. Revisa la altitud máxima de operación en la ficha técnica.');
+    c.perPanel = s.wp * s.hsp * s.pr;
+    var inv3 = s.phase === 3, list = inv3 ? STD.inv3 : STD.inv1;
+    var pickInv = function (req) { return nextStd(list, req) || Math.ceil(req / 5000) * 5000; };
+
+    if (pump) {
+      c.Eh = 2.725 * s.hd * s.q;
+      c.Pel = (c.Eh / s.hb) / s.ep;
+      c.Ereq = c.Eh / s.ep;
+      var Ne = Math.ceil(c.Ereq / c.perPanel - 1e-9), Np = Math.ceil(1.25 * c.Pel / s.wp - 1e-9);
+      c.N = Math.max(1, Ne, Np);
+      c.byPeak = Np > Ne;
+      c.qpeak = s.q / s.hb;
+      c.hp = nextStd(STD.hp, c.Pel / 746) || Math.ceil(c.Pel / 746);
+      c.vfd = nextStd(STD.vfd, c.Pel * 1.25 / 1000) || Math.ceil(c.Pel * 1.25 / 1000);
+      c.tank = s.q * s.td;
+      arrayCfg(c.N, s, c);
+      c.cov = null;
+      c.Pnom = c.Pel;
+      checkModel(s, c);
+      return c;
+    }
+
+    c.Pcont = Pins * s.sim;
+    c.Ppico = c.Pcont + Smax;
+    if (off && s.wave === 'mod' && Smax > 0) c.warns.push('Onda modificada con motores o refrigeradora puede dañar los equipos o hacer que no arranquen. Usa onda pura.');
+
+    if (on) {
+      c.Ereq = E * s.covt / s.einv;
+      c.N = Math.max(1, Math.ceil(c.Ereq / c.perPanel - 1e-9));
+      arrayCfg(c.N, s, c);
+      c.invStd = pickInv((c.Pfv / 1.2) / c.derate);
+      c.ratio = c.Pfv / c.invStd;
+      if (c.ratio > 1.5) c.warns.push('Relación paneles/inversor de ' + fmt(c.ratio, 2) + ' (muy alta). Sube el inversor o baja los paneles.');
+      if (c.Pmax > 0) { /* sin uso */ }
+      c.cov = c.Egen * s.einv / E;
+      if (Pins * s.sim > c.Pfv) c.warns.push('La potencia simultánea de las cargas (' + fmt(c.Pcont) + ' W) es mayor que la del arreglo. La red cubrirá la diferencia.');
+    } else {
+      var crit = hyb ? s.crit : 1;
+      c.Pcrit = c.Pcont * crit;
+      c.Ppicoc = c.Pcrit + Smax * crit;
+      c.PinvReq = Math.max(1.25 * c.Pcrit, c.Ppicoc / s.surge) / c.derate;
+      c.invStd = pickInv(c.PinvReq);
+      c.Ereq = off ? E / (s.einv * s.ebat) : E * s.covt / s.einv;
+      c.N = Math.max(1, Math.ceil(c.Ereq / c.perPanel - 1e-9));
+      arrayCfg(c.N, s, c);
+      c.cov = off ? c.Egen * s.einv * s.ebat / E : c.Egen * s.einv / E;
+      var pref = Math.max(c.Pfv, c.invStd);
+      c.vsys = s.vsel === 'auto' ? (pref <= 800 ? 12 : (pref <= 2400 ? 24 : 48)) : parseFloat(s.vsel);
+      c.Cwh = off ? E * s.days / (s.dod * s.einv) : c.Pcrit * s.bh / (s.dod * s.einv);
       c.Cah = c.Cwh / c.vsys;
       c.bs = Math.max(1, Math.ceil(c.vsys / s.vunit - 1e-9));
       c.bp = Math.max(1, Math.ceil(c.Cah / s.ahunit - 1e-9));
       c.btot = c.bs * c.bp;
       c.Whinst = c.btot * s.vunit * s.ahunit;
-      if (Math.abs(c.bs * s.vunit - c.vsys) > 0.01) c.warns.push('Las baterías de ' + fmt(s.vunit) + ' V no forman exactamente ' + c.vsys + ' V (' + c.bs + ' en serie dan ' + fmt(c.bs * s.vunit) + ' V). Elige otra tensión de batería o de sistema.');
+      if (Math.abs(c.bs * s.vunit - c.vsys) > c.vsys * 0.1) c.warns.push('Las baterías de ' + fmt(s.vunit) + ' V no forman exactamente ' + c.vsys + ' V (' + c.bs + ' en serie dan ' + fmt(c.bs * s.vunit) + ' V). Elige otra tensión de batería o de sistema.');
       c.Ictrl = c.Pfv / c.vsys * 1.25;
-      var cs = CTRL.filter(function (x) { return x >= c.Ictrl; })[0];
-      if (cs) { c.ctrlN = 1; c.ctrlA = cs; } else { c.ctrlN = Math.ceil(c.Ictrl / 100); c.ctrlA = 100; }
-      c.Pinv = c.Pmax * 1.25;
-      c.invStd = INV.filter(function (x) { return x >= c.Pinv; })[0] || Math.ceil(c.Pinv / 1000) * 1000;
-      c.Ibat = c.Pinv / (c.vsys * 0.9);
-      if (c.Ibat > 100) c.warns.push('El inversor puede pedir unos ' + fmt(c.Ibat) + ' A a la batería a ' + c.vsys + ' V. Considera subir la tensión del sistema para reducir la corriente y la sección del cable.');
-      if (c.Ictrl > 100) c.warns.push('La corriente calculada del regulador (' + fmt(c.Ictrl) + ' A) supera los 100 A. Se indican ' + c.ctrlN + ' reguladores de 100 A, cada uno con su propio arreglo de paneles.');
-    } else {
-      c.invMin = c.Pfv / 1.2; c.invMax = c.Pfv;
-      if (c.Pmax > c.Pfv) c.warns.push('La potencia simultánea de las cargas (' + fmt(c.Pmax) + ' W) es mayor que la del arreglo. La red cubrirá la diferencia.');
+      if (off && s.invtype === 'sep') {
+        var cs = nextStd(STD.ctrl, c.Ictrl);
+        if (cs) { c.ctrlN = 1; c.ctrlA = cs; } else { c.ctrlN = Math.ceil(c.Ictrl / 100); c.ctrlA = 100; }
+        if (c.Ictrl > 100) c.warns.push('La corriente calculada del regulador (' + fmt(c.Ictrl) + ' A) supera los 100 A. Se indican ' + c.ctrlN + ' reguladores de 100 A, cada uno con su propio arreglo de paneles.');
+      }
+      c.Ibat = c.invStd / (c.vsys * 0.9);
+      if (c.Ibat > 150) c.warns.push('El inversor puede pedir unos ' + fmt(c.Ibat) + ' A a la batería a ' + c.vsys + ' V. Considera subir la tensión del sistema para reducir la corriente y el grosor del cable.');
     }
+    if ((on || hyb) && s.imax > 0) {
+      var perIn = Math.max(1, Math.floor(s.imax / s.isc));
+      c.mppt = Math.ceil(c.par / perIn);
+      if (c.mppt > 1) c.warns.push('El arreglo tiene ' + c.par + ' cadenas en paralelo y cada entrada admite ' + perIn + '. Necesitas ' + c.mppt + ' entradas MPPT (o un equipo con mayor corriente de entrada).');
+    }
+    c.Pnom = c.invStd;
+    checkModel(s, c);
     return c;
   }
 
-  function memoria(s, c) {
-    var L = [];
-    L.push('E diaria = Σ(P × cant × h) = ' + fmt(c.E) + ' Wh/día');
-    L.push('P instalada = Σ(P × cant) = ' + fmt(c.Pins) + ' W');
-    L.push('P simultánea = ' + fmt(c.Pins) + ' × ' + fmt(s.sim * 100) + ' % = ' + fmt(c.Pmax) + ' W');
-    if (c.off) L.push('E a generar = E / (η inv × η bat) = ' + fmt(c.E) + ' / (' + s.einv + ' × ' + s.ebat + ') = ' + fmt(c.Ereq) + ' Wh/día');
-    else L.push('E a generar = E / η inv = ' + fmt(c.E) + ' / ' + s.einv + ' = ' + fmt(c.Ereq) + ' Wh/día');
-    L.push('E por panel = Wp × HSP × PR = ' + fmt(s.wp) + ' × ' + s.hsp + ' × ' + s.pr + ' = ' + fmt(c.perPanel) + ' Wh/día');
-    L.push('N paneles = ' + fmt(c.Ereq) + ' / ' + fmt(c.perPanel) + ' = ' + fmt(c.Ereq / c.perPanel, 2) + ' → ' + c.N);
-    L.push('Arreglo = ' + c.ser + ' en serie × ' + c.par + ' en paralelo = ' + c.total + ' paneles (' + fmt(c.Pfv) + ' Wp)');
-    L.push('Voc de cadena = ' + c.ser + ' × ' + s.voc + ' V × 1,15 = ' + fmt(c.Voc, 1) + ' V');
-    L.push('Isc del arreglo = ' + c.par + ' × ' + s.isc + ' A = ' + fmt(c.Isc, 1) + ' A');
-    if (c.off) {
-      L.push('Tensión del sistema = ' + c.vsys + ' V');
-      L.push('C batería = E × días / (DoD × η inv) = ' + fmt(c.E) + ' × ' + s.days + ' / (' + s.dod + ' × ' + s.einv + ') = ' + fmt(c.Cwh) + ' Wh');
-      L.push('C batería = ' + fmt(c.Cwh) + ' / ' + c.vsys + ' V = ' + fmt(c.Cah) + ' Ah');
-      L.push('Baterías = ' + c.bs + ' en serie × ' + c.bp + ' en paralelo = ' + c.btot + ' de ' + fmt(s.vunit) + ' V / ' + fmt(s.ahunit) + ' Ah');
-      L.push('I regulador = Pfv / Vsis × 1,25 = ' + fmt(c.Pfv) + ' / ' + c.vsys + ' × 1,25 = ' + fmt(c.Ictrl, 1) + ' A → ' + (c.ctrlN > 1 ? c.ctrlN + ' × ' : '') + c.ctrlA + ' A');
-      L.push('P inversor = P simultánea × 1,25 = ' + fmt(c.Pinv) + ' W → ' + fmt(c.invStd) + ' W');
-    } else {
-      L.push('P inversor de red = Pfv / 1,2 … Pfv = ' + fmt(c.invMin) + ' … ' + fmt(c.invMax) + ' W');
+  function cableRows(s, c) {
+    var out = [];
+    if (c.invalid) return out;
+    var pump = c.mode === 'pump', hasBat = c.mode === 'off' || c.mode === 'hyb';
+    var ldc = num('ldc'), lbat = num('lbat'), lac = num('lac'), dd = num('ddc') / 100, db = num('dbat') / 100, da = num('dac') / 100;
+    var dest = c.mode === 'off' ? (s.invtype === 'int' ? 'inversor-cargador' : 'regulador') : (c.mode === 'on' ? 'inversor' : (c.mode === 'hyb' ? 'inversor híbrido' : 'variador'));
+    var dcV = nextStd([250, 600, 1000, 1500], c.Voc) || 1500;
+
+    if (dd > 0 && c.Vmp > 0) {
+      var sd = 2 * ldc * c.Imp / (56 * c.Vmp * dd);
+      out.push(['Cable de paneles → ' + dest, secTxt(pickSec(sd, 1.56 * c.Isc)), fmt(c.Imp, 1) + ' A · ' + fmt(c.Vmp) + ' V · cobre']);
     }
-    L.push('Generación estimada = ' + fmt(c.Pfv) + ' × ' + s.hsp + ' × ' + s.pr + ' = ' + fmt(c.Egen) + ' Wh/día');
-    return L.join('\n');
+    if (c.par >= 3) out.push(['Fusible por cadena', nextStd(STD.fuse, 1.56 * s.isc) + ' A · ' + dcV + ' V DC', 'Obligatorio con 3 o más cadenas en paralelo']);
+    else out.push(['Fusible por cadena', 'No requerido', 'Menos de 3 cadenas en paralelo']);
+    out.push(['Seccionador DC de paneles', (nextStd(STD.fuse, 1.56 * c.Isc) || '> 630') + ' A · ' + dcV + ' V DC', 'Ante la corriente de cortocircuito del arreglo']);
+
+    if (hasBat) {
+      var ibat = c.Ibat;
+      var sb = 2 * lbat * ibat / (56 * c.vsys * db);
+      out.push(['Cable batería → inversor', secTxt(pickSec(sb, 1.25 * ibat)), fmt(ibat) + ' A a ' + c.vsys + ' V']);
+      out.push(['Fusible / breaker de batería', (nextStd(STD.fuse, 1.25 * ibat) || '> 630') + ' A DC', 'Cerca de las baterías, curva para DC']);
+    }
+
+    var P = pump ? c.Pel : c.Pnom, V = s.phase === 3 ? 380 : 220;
+    var Iac = s.phase === 3 ? P / (1.732 * V * 0.9) : P / (V * 0.9);
+    var sa = (s.phase === 3 ? 1.732 : 2) * lac * Iac * 0.9 / (56 * V * da);
+    out.push([pump ? 'Cable variador → motor' : 'Cable salida AC', secTxt(pickSec(sa, 1.25 * Iac)), fmt(Iac, 1) + ' A · ' + (s.phase === 3 ? 'trifásico 380 V' : 'monofásico 220 V')]);
+    out.push([pump ? 'Térmico del motor' : 'Breaker AC', (nextStd(STD.fuse, 1.25 * Iac) || '> 630') + ' A · ' + (s.phase === 3 ? '3P' : '2P'), 'Curva C']);
+    out.push(['Otras protecciones', 'SPD tipo 2 + diferencial 30 mA', 'Descargador en DC y AC; puesta a tierra de paneles y estructura']);
+    return out;
   }
 
-  function tile(t, v, u, sub) {
-    return '<div class="tile"><div class="t">' + t + '</div><div class="v">' + v + '<span class="u">' + u + '</span></div><div class="s">' + sub + '</div></div>';
+  function memoria(s, c, cab) {
+    var L = [];
+    var T = [];
+    T.push('Voc en frío = Voc × (1 + β × (25 − Tmín)) = ' + s.voc + ' × (1 + ' + s.bvoc + ' × ' + (25 - s.tmin) + ') = ' + fmt(c.vocCold, 1) + ' V');
+    T.push('Vmp en calor = Vmp × (1 − β × (Tmáx + 25 − 25)) = ' + fmt(c.vmpHot, 1) + ' V');
+    if (c.mode === 'pump') {
+      L.push('E hidráulica = 2,725 × H × Q = 2,725 × ' + s.hd + ' × ' + s.q + ' = ' + fmt(c.Eh) + ' Wh/día');
+      L.push('E eléctrica = E hidráulica / η = ' + fmt(c.Eh) + ' / ' + s.ep + ' = ' + fmt(c.Ereq) + ' Wh/día');
+      L.push('P eléctrica de la bomba = (E hid. / horas) / η = ' + fmt(c.Pel) + ' W → ' + c.hp + ' HP');
+      L.push('Caudal en horas de bombeo = Q / horas = ' + fmt(c.qpeak, 2) + ' m³/h (' + fmt(c.qpeak / 3.6, 2) + ' L/s)');
+      L.push('E por panel = Wp × HSP × PR = ' + fmt(s.wp) + ' × ' + s.hsp + ' × ' + s.pr + ' = ' + fmt(c.perPanel) + ' Wh/día');
+      L.push('N paneles = máx(E / E panel, 1,25 × P bomba / Wp) = ' + c.N);
+      L.push('Variador = 1,25 × P bomba = ' + fmt(c.Pel * 1.25) + ' W → ' + c.vfd + ' kW');
+      L.push('Reserva de agua = Q × días = ' + fmt(c.tank, 1) + ' m³');
+    } else {
+      L.push('E diaria = Σ(P × cant × h) = ' + fmt(c.E) + ' Wh/día');
+      L.push('P instalada = Σ(P × cant) = ' + fmt(c.Pins) + ' W · simultánea = ' + fmt(c.Pcont) + ' W · pico de arranque = ' + fmt(c.Ppico) + ' W');
+      if (c.mode === 'off') L.push('E a generar = E / (η inv × η bat) = ' + fmt(c.E) + ' / (' + s.einv + ' × ' + s.ebat + ') = ' + fmt(c.Ereq) + ' Wh/día');
+      else L.push('E a generar = E × cobertura / η inv = ' + fmt(c.E) + ' × ' + s.covt + ' / ' + s.einv + ' = ' + fmt(c.Ereq) + ' Wh/día');
+      L.push('E por panel = Wp × HSP × PR = ' + fmt(s.wp) + ' × ' + s.hsp + ' × ' + s.pr + ' = ' + fmt(c.perPanel) + ' Wh/día');
+      L.push('N paneles = ' + fmt(c.Ereq) + ' / ' + fmt(c.perPanel) + ' = ' + fmt(c.Ereq / c.perPanel, 2) + ' → ' + c.N);
+    }
+    L.push('Arreglo = ' + c.ser + ' en serie × ' + c.par + ' en paralelo = ' + c.total + ' paneles (' + fmt(c.Pfv) + ' Wp)');
+    L.push('Voc de cadena en frío = ' + c.ser + ' × ' + fmt(c.vocCold, 1) + ' = ' + fmt(c.Voc, 1) + ' V');
+    L.push('Isc del arreglo = ' + c.par + ' × ' + s.isc + ' = ' + fmt(c.Isc, 1) + ' A');
+    if (c.mode === 'on') {
+      L.push('Factor por altitud = ' + fmt(c.derate, 2) + ' (1 % por cada 100 m sobre 1 000 m)');
+      L.push('P inversor de red ≥ Pfv / 1,2 / factor = ' + fmt(c.Pfv / 1.2 / c.derate) + ' W → ' + fmt(c.invStd) + ' W');
+    }
+    if (c.mode === 'off' || c.mode === 'hyb') {
+      L.push('Factor por altitud = ' + fmt(c.derate, 2) + ' (1 % por cada 100 m sobre 1 000 m)');
+      L.push('P inversor ≥ máx(1,25 × P cont., P pico / ' + s.surge + ') / factor = ' + fmt(c.PinvReq) + ' W → ' + fmt(c.invStd) + ' W');
+      L.push('Tensión del sistema = ' + c.vsys + ' V');
+      if (c.mode === 'off') L.push('C batería = E × días / (DoD × η inv) = ' + fmt(c.E) + ' × ' + s.days + ' / (' + s.dod + ' × ' + s.einv + ') = ' + fmt(c.Cwh) + ' Wh');
+      else L.push('C batería = P crítica × horas / (DoD × η inv) = ' + fmt(c.Pcrit) + ' × ' + s.bh + ' / (' + s.dod + ' × ' + s.einv + ') = ' + fmt(c.Cwh) + ' Wh');
+      L.push('C batería = ' + fmt(c.Cwh) + ' / ' + c.vsys + ' V = ' + fmt(c.Cah) + ' Ah');
+      L.push('Baterías = ' + c.bs + ' en serie × ' + c.bp + ' en paralelo = ' + c.btot + ' de ' + fmt(s.vunit) + ' V / ' + fmt(s.ahunit) + ' Ah');
+      L.push('I de carga = Pfv / Vsis × 1,25 = ' + fmt(c.Pfv) + ' / ' + c.vsys + ' × 1,25 = ' + fmt(c.Ictrl, 1) + ' A');
+    }
+    L.push('Generación estimada = ' + fmt(c.Pfv) + ' × ' + s.hsp + ' × ' + s.pr + ' = ' + fmt(c.Egen) + ' Wh/día');
+    return T.concat(L).join('\n');
+  }
+
+  function kpi(k, v, u, sub) {
+    return '<div class="kpi"><div class="k">' + k + '</div><div class="v">' + v + (u ? '<span class="u">' + u + '</span>' : '') + '</div><div class="s">' + sub + '</div></div>';
+  }
+  var nomV = function (v) { return v >= 10 ? Math.round(v / 12) * 12 : v; };
+  var kw = function (w) { return w >= 10000 ? fmt(w / 1000, 1) : fmt(w); };
+
+  var sol = function (x) { return 'S/ ' + fmt(x, 2); };
+  function syncCost() {
+    var m = $('mode').value, t = $('invtype').value;
+    $('cinv-l').textContent = m === 'off' ? (t === 'int' ? 'Inversor-cargador' : 'Inversor') : (m === 'on' ? 'Inversor de red' : (m === 'hyb' ? 'Inversor híbrido' : 'Variador solar'));
+    $('creg').parentNode.hidden = !(m === 'off' && t === 'sep');
+  }
+  function renderCosts(s, c) {
+    var m = c.mode, items = [];
+    var invName = m === 'off' ? (s.invtype === 'int' ? 'Inversor-cargador' : 'Inversor') : (m === 'on' ? 'Inversor de red' : (m === 'hyb' ? 'Inversor híbrido' : 'Variador solar'));
+    items.push(['Paneles de ' + fmt(s.wp) + ' Wp', c.total, num('cpan')]);
+    if (m === 'off' || m === 'hyb') items.push(['Baterías de ' + nomV(s.vunit) + ' V · ' + fmt(s.ahunit) + ' Ah', c.btot, num('cbat')]);
+    if (m === 'off' && s.invtype === 'sep') items.push(['Regulador MPPT de ' + c.ctrlA + ' A', c.ctrlN, num('creg')]);
+    if (m === 'pump') { items.push(['Variador solar de ' + c.vfd + ' kW', 1, num('cinv')]); items.push(['Bomba de ' + c.hp + ' HP', 1, num('cbom')]); }
+    else items.push([invName + ' de ' + fmt(c.invStd) + ' W', 1, num('cinv')]);
+    items.push(['Cables, protecciones y estructura', 1, num('cglob')]);
+    var total = 0, any = false;
+    items.forEach(function (it) { var sub = it[1] * it[2]; total += sub; if (it[2] > 0) any = true; it.push(sub); });
+    var html = '<dl class="rows">' + items.map(function (it) {
+      return '<div><dt>' + esc(it[0]) + '</dt><dd>' + (it[2] > 0 ? it[1] + ' × ' + fmt(it[2], 2) + '<small>' + sol(it[3]) + '</small>' : it[1] + ' uds<small>sin precio</small>') + '</dd></div>';
+    }).join('') + '<div class="hl"><dt>Total del presupuesto</dt><dd>' + (any ? sol(total) : '—') + '</dd></div></dl>';
+    var txt = '';
+    if (any) txt = '\n\nPresupuesto (S/)\n' + items.filter(function (it) { return it[2] > 0; }).map(function (it) { return '- ' + it[0] + ': ' + it[1] + ' × ' + fmt(it[2], 2) + ' = ' + sol(it[3]); }).join('\n') + '\n- Total: ' + sol(total);
+    if (m === 'on' || m === 'hyb') {
+      var tar = num('tar'), kwh = Math.min(c.E, c.Egen * s.einv) * 30 / 1000;
+      html += '<p class="sect">Ahorro en el recibo de luz</p><dl class="rows"><div><dt>Energía solar aprovechada</dt><dd>' + fmt(kwh) + ' kWh/mes</dd></div>';
+      if (tar > 0) {
+        var mes = kwh * tar, anio = mes * 12;
+        html += '<div><dt>Ahorro mensual</dt><dd>' + sol(mes) + '</dd></div><div><dt>Ahorro anual</dt><dd>' + sol(anio) + '</dd></div>';
+        if (any && anio > 0) {
+          var yrs = total / anio;
+          html += '<div class="hl"><dt>Recuperación de la inversión</dt><dd>' + fmt(yrs, 1) + ' años</dd></div>';
+          txt += '\nAhorro mensual: ' + sol(mes) + ' · Recuperación: ' + fmt(yrs, 1) + ' años';
+        } else html += '<div><dt>Recuperación de la inversión</dt><dd>escribe los precios</dd></div>';
+      } else html += '<div><dt>Ahorro mensual</dt><dd>escribe la tarifa</dd></div>';
+      html += '</dl>';
+    }
+    html += '<p class="note">El ahorro usa la energía solar que consumes en la casa. No incluye mantenimiento, cargos fijos ni la pérdida de rendimiento de los paneles con los años.</p>';
+    $('costs').innerHTML = html;
+    return txt;
+  }
+
+  function renderSim(s, c) {
+    var out = $('simout'), m = c.mode, i, H = 24;
+    var gen = [], ld = [], gs = 0, ls = 0;
+    for (i = 0; i < H; i++) { var x = i + 0.5 - 6; var g = (x > 0 && x < 12) ? Math.pow(Math.sin(Math.PI * x / 12), 1.5) : 0; gen.push(g); gs += g; }
+    gen = gen.map(function (g) { return g / gs * c.Egen; });
+    var pf = $('simperfil').value, w = [];
+    for (i = 0; i < H; i++) {
+      var v = 1;
+      if (pf === 'casa') v = (i >= 6 && i <= 8) ? 1.5 : (i >= 17 && i <= 22) ? 2 : (i >= 9 && i <= 16) ? 0.6 : 0.3;
+      else if (pf === 'dia') v = (i >= 8 && i <= 17) ? 1 : 0;
+      else if (pf === 'noche') v = (i >= 18 || i <= 5) ? 1 : 0;
+      w.push(v); ls += v;
+    }
+    var E = m === 'pump' ? 0 : c.E;
+    ld = w.map(function (v) { return m === 'pump' ? 0 : v / ls * E; });
+    var hasBat = m === 'off' || m === 'hyb';
+    var cap = hasBat ? c.Whinst * s.dod : 0, soc = cap, socs = [], imp = [], exp = [], miss = 0, impT = 0, expT = 0, pass, a;
+    for (pass = 0; pass < 3; pass++) {
+      socs = []; imp = []; exp = []; miss = 0; impT = 0; expT = 0;
+      for (i = 0; i < H; i++) {
+        var need = ld[i] / s.einv, d = Math.min(gen[i], need), sur = gen[i] - d, def = need - d, ex = 0, im = 0;
+        if (hasBat) {
+          if (sur > 0) { a = Math.min(sur * s.ebat, cap - soc); soc += a; ex = sur - a / s.ebat; }
+          if (def > 0) { a = Math.min(def, soc); soc -= a; def -= a; }
+          if (def > 0) { im = def * s.einv; }
+        } else if (m !== 'pump') { ex = sur * s.einv; im = def * s.einv; }
+        else ex = sur;
+        socs.push(cap > 0 ? soc / cap * 100 : 0); imp.push(im); exp.push(m === 'on' || m === 'hyb' ? ex * s.einv : ex); impT += im; expT += (m === 'on' || m === 'hyb') ? ex * s.einv : ex;
+      }
+    }
+    miss = impT;
+    var hr = parseInt($('simh').value, 10) || 0;
+    $('simhv').textContent = (hr < 10 ? '0' : '') + hr + ':00';
+    var W = 320, Ht = 130, L = 30, R = 6, T = 8, B = 18, pw = W - L - R, ph = Ht - T - B;
+    var mx = Math.max.apply(null, gen.concat(ld)) * 1.1 || 1;
+    var X = function (k) { return L + pw * k / H; }, Y = function (v) { return T + ph * (1 - v / mx); };
+    var gp = 'M' + X(0) + ',' + Y(0), lp = '';
+    for (i = 0; i < H; i++) { gp += ' L' + X(i) + ',' + Y(gen[i]) + ' L' + X(i + 1) + ',' + Y(gen[i]); lp += (i ? ' L' : 'M') + X(i) + ',' + Y(ld[i]) + ' L' + X(i + 1) + ',' + Y(ld[i]); }
+    gp += ' L' + X(H) + ',' + Y(0) + ' Z';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + Ht + '" width="100%" role="img" aria-label="Producción solar y consumo en 24 horas" style="display:block;font:10px var(--f-mono);">';
+    [0, 6, 12, 18, 24].forEach(function (t) { svg += '<line x1="' + X(t) + '" x2="' + X(t) + '" y1="' + T + '" y2="' + (T + ph) + '" stroke="var(--line)" stroke-width="0.5"/><text x="' + X(t) + '" y="' + (Ht - 4) + '" text-anchor="middle" fill="var(--muted)">' + t + 'h</text>'; });
+    svg += '<text x="2" y="' + (T + 8) + '" fill="var(--muted)">' + fmt(mx / 1.1) + ' W</text>';
+    svg += '<path d="' + gp + '" fill="var(--sun)" fill-opacity="0.45" stroke="var(--sun)" stroke-width="1.2"/>';
+    if (m !== 'pump') svg += '<path d="' + lp + '" fill="none" stroke="var(--accent)" stroke-width="1.6"/>';
+    svg += '<line x1="' + X(hr + 0.5) + '" x2="' + X(hr + 0.5) + '" y1="' + T + '" y2="' + (T + ph) + '" stroke="var(--warn)" stroke-width="1.2" stroke-dasharray="3 2"/></svg>';
+    var leg = '<p class="note"><span style="color:var(--sun)">■</span> Paneles' + (m !== 'pump' ? ' &nbsp; <span style="color:var(--accent)">■</span> Consumo' : '') + '</p>';
+    var rows = '<div><dt>A las ' + $('simhv').textContent + ' los paneles dan</dt><dd>' + fmt(gen[hr]) + ' W</dd></div>';
+    if (m !== 'pump') rows += '<div><dt>El consumo es</dt><dd>' + fmt(ld[hr]) + ' W</dd></div>';
+    if (hasBat) {
+      rows += '<div><dt>Batería a esa hora</dt><dd>' + fmt(socs[hr]) + ' %</dd></div>';
+      var mn = Math.min.apply(null, socs);
+      rows += '<div class="hl"><dt>Batería más baja del día</dt><dd>' + fmt(mn) + ' %</dd></div>';
+      rows += m === 'off' ? '<div><dt>Energía que falta</dt><dd>' + fmt(miss) + ' Wh</dd></div>' : '<div><dt>Compra a la red</dt><dd>' + fmt(impT) + ' Wh</dd></div>';
+    } else if (m === 'on') {
+      rows += '<div><dt>Compra a la red</dt><dd>' + fmt(impT) + ' Wh/día</dd></div><div><dt>Excedente a la red</dt><dd>' + fmt(expT) + ' Wh/día</dd></div>';
+    } else {
+      var run = 0; for (i = 0; i < H; i++) if (gen[i] >= 0.3 * c.Pfv * 0.5) run++;
+      rows += '<div class="hl"><dt>Bomba trabajando (aprox.)</dt><dd>' + run + ' h</dd></div>';
+    }
+    var soch = '';
+    if (hasBat) {
+      var sp = '';
+      for (i = 0; i < H; i++) sp += (i ? ' L' : 'M') + X(i + 0.5) + ',' + (T + 36 * (1 - socs[i] / 100));
+      soch = '<p class="sect">Carga de la batería</p><svg viewBox="0 0 ' + W + ' 52" width="100%" role="img" aria-label="Carga de la batería en 24 horas" style="display:block;font:10px var(--f-mono);"><rect x="' + L + '" y="' + T + '" width="' + pw + '" height="36" fill="none" stroke="var(--line)" stroke-width="0.5"/><path d="' + sp + '" fill="none" stroke="var(--accent)" stroke-width="1.6"/><text x="2" y="' + (T + 8) + '" fill="var(--muted)">100%</text><text x="2" y="' + (T + 36) + '" fill="var(--muted)">0%</text><line x1="' + X(hr + 0.5) + '" x2="' + X(hr + 0.5) + '" y1="' + T + '" y2="' + (T + 36) + '" stroke="var(--warn)" stroke-width="1.2" stroke-dasharray="3 2"/></svg>';
+    }
+    out.innerHTML = svg + leg + soch + '<dl class="rows">' + rows + '</dl><p class="note">Es una simulación de un día soleado típico de tu zona, con el sol de 6 a 18 h. El uso de la energía a lo largo del día es una suposición.</p>';
   }
 
   function render(s, c) {
-    var box = $('results'), bar = $('bar');
-    var wasOpen = !!box.querySelector('details[open]');
+    var kp = $('kpis'), rep = $('report'), al = $('alert'), cb = $('cables');
+    var open = !!rep.querySelector('details[open]');
     if (c.invalid) {
-      box.innerHTML = '<section class="card"><h2>Resultado</h2><p class="empty">Agrega al menos un equipo con potencia, cantidad y horas, y completa los datos del panel y de la radiación solar para ver el resultado.</p></section>';
-      bar.textContent = 'Completa los datos para ver el resultado';
-      lastSummary = '';
+      kp.innerHTML = kpi('Paneles', '—', '', 'sin datos') + kpi('—', '—', '', 'sin datos') + kpi('—', '—', '', 'sin datos') + kpi('—', '—', '', 'sin datos');
+      rep.innerHTML = '<div class="card"><p class="empty">Completa las cargas (o los datos de la bomba), el panel y la radiación solar para ver el resultado.</p></div>';
+      cb.innerHTML = '<p class="empty">Aparecerán cuando el cálculo tenga datos completos.</p>';
+      al.classList.remove('on'); lastSummary = ''; shareSummary = '';
+      $('costs').innerHTML = '<p class="empty">Aparecerá cuando el cálculo tenga datos completos.</p>';
+      $('simout').innerHTML = '<p class="empty">Aparecerá cuando el cálculo tenga datos completos.</p>';
       return;
     }
-    var tiles = tile('Paneles', c.total, 'uds', fmt(s.wp) + ' Wp c/u · ' + fmt(c.Pfv / 1000, 2) + ' kWp');
-    var invTxt, ctrlTxt;
-    if (c.off) {
-      tiles += tile('Baterías', c.btot, 'uds', fmt(s.vunit) + ' V · ' + fmt(s.ahunit) + ' Ah · ' + c.bs + 'S' + c.bp + 'P');
-      ctrlTxt = (c.ctrlN > 1 ? c.ctrlN + '×' : '') + c.ctrlA;
-      tiles += tile('Regulador MPPT', ctrlTxt, 'A', 'Sistema de ' + c.vsys + ' V');
-      invTxt = fmt(c.invStd);
-      tiles += tile('Inversor', invTxt, 'W', 'Pico de ' + fmt(c.Pmax) + ' W más 25 % de margen');
+    var m = c.mode, off = m === 'off', on = m === 'on', hyb = m === 'hyb', pump = m === 'pump';
+    var pnl = kpi('Paneles', c.total, '× ' + fmt(s.wp) + ' Wp', fmt(c.Pfv / 1000, 2) + ' kWp');
+    var invTxt, items = [];
+    if (off) {
+      var ctrl = s.invtype === 'sep' ? (c.ctrlN > 1 ? c.ctrlN + '×' : '') + c.ctrlA : 'Integr.';
+      kp.innerHTML = pnl + kpi('Baterías', c.btot, 'uds', nomV(s.vunit) + 'V·' + fmt(s.ahunit) + 'Ah') +
+        kpi('Regulador', ctrl, s.invtype === 'sep' ? 'A' : '', c.vsys + ' V MPPT') + kpi('Inversor', fmt(c.invStd), 'W', 'Pico ' + fmt(c.Ppico) + ' W');
+      invTxt = fmt(c.invStd) + ' W';
+    } else if (on) {
+      kp.innerHTML = pnl + kpi('Inversor', fmt(c.invStd), 'W', 'DC/AC ' + fmt(c.ratio, 2)) +
+        kpi('Generación', fmt(c.Egen / 1000, 1), 'kWh/d', 'Uso ' + fmt(c.E / 1000, 1) + ' kWh/d') + kpi('Cobertura', fmt(c.cov * 100), '%', 'del consumo');
+      invTxt = fmt(c.invStd) + ' W';
+    } else if (hyb) {
+      kp.innerHTML = pnl + kpi('Baterías', c.btot, 'uds', nomV(s.vunit) + 'V·' + fmt(s.ahunit) + 'Ah') +
+        kpi('Híbrido', fmt(c.invStd), 'W', c.vsys + ' V batería') + kpi('Cobertura', fmt(c.cov * 100), '%', 'del consumo');
+      invTxt = fmt(c.invStd) + ' W';
     } else {
-      invTxt = fmt(c.invMin) + '–' + fmt(c.invMax);
-      tiles += tile('Inversor de red', invTxt, 'W', 'Entre Pfv/1,2 y Pfv');
+      kp.innerHTML = pnl + kpi('Variador', fmt(c.vfd, c.vfd < 1 ? 2 : 1), 'kW', 'solar MPPT') + kpi('Bomba', c.hp, 'HP', fmt(c.Pel) + ' W') + kpi('Agua', fmt(s.q, 1), 'm³/día', 'a ' + fmt(s.hd) + ' m');
     }
 
-    var dl = '<dl class="rows">' +
-      '<div><dt>Consumo diario</dt><dd>' + fmt(c.E) + ' Wh · ' + fmt(c.E * 30 / 1000, 1) + ' kWh/mes</dd></div>' +
-      '<div><dt>Potencia instalada</dt><dd>' + fmt(c.Pins) + ' W (simultánea ' + fmt(c.Pmax) + ' W)</dd></div>' +
-      '<div><dt>Arreglo de paneles</dt><dd>' + c.ser + ' serie × ' + c.par + ' paralelo</dd></div>' +
-      '<div><dt>Voc de cadena (frío)</dt><dd>' + fmt(c.Voc, 1) + ' V</dd></div>' +
-      '<div><dt>Isc del arreglo</dt><dd>' + fmt(c.Isc, 1) + ' A</dd></div>' +
-      (c.off ? '<div><dt>Batería requerida</dt><dd>' + fmt(c.Cwh) + ' Wh · ' + fmt(c.Cah) + ' Ah a ' + c.vsys + ' V</dd></div>' +
-        '<div><dt>Batería instalada</dt><dd>' + fmt(c.Whinst) + ' Wh</dd></div>' : '') +
-      '<div><dt>Generación estimada</dt><dd>' + fmt(c.Egen) + ' Wh/día</dd></div>' +
-      '<div class="hl"><dt>Cobertura del consumo</dt><dd>' + fmt(c.cov * 100) + ' %</dd></div></dl>';
+    $('alert-t').textContent = c.warns.length === 1 ? '1 aviso en el cálculo' : c.warns.length + ' avisos en el cálculo';
+    al.classList.toggle('on', c.warns.length > 0);
+
+    var D = [];
+    if (pump) {
+      D.push(['Energía hidráulica', fmt(c.Eh) + ' Wh/día']);
+      D.push(['Potencia eléctrica de la bomba', fmt(c.Pel) + ' W']);
+      D.push(['Caudal en horas de bombeo', fmt(c.qpeak, 2) + ' m³/h<small>' + fmt(c.qpeak / 3.6, 2) + ' L/s</small>']);
+      D.push(['Reserva de agua', fmt(c.tank, 1) + ' m³']);
+      D.push(['Paneles dimensionados por', c.byPeak ? 'potencia de arranque' : 'energía diaria']);
+    } else {
+      D.push(['Consumo diario', fmt(c.E) + ' Wh<small>' + fmt(c.E * 30 / 1000, 1) + ' kWh/mes</small>']);
+      D.push(['Potencia instalada', fmt(c.Pins) + ' W<small>simultánea ' + fmt(c.Pcont) + ' W · pico ' + fmt(c.Ppico) + ' W</small>']);
+    }
+    D.push(['Arreglo de paneles', c.ser + ' serie × ' + c.par + ' paralelo']);
+    D.push(['Voc en frío / Vmp en calor', fmt(c.Voc, 1) + ' V / ' + fmt(c.ser * c.vmpHot, 1) + ' V<small>Tmín ' + s.tmin + ' °C · Tmáx ' + s.tmax + ' °C</small>']);
+    D.push(['Isc del arreglo', fmt(c.Isc, 1) + ' A']);
+    if (off || hyb) {
+      D.push([off ? 'Autonomía' : 'Respaldo', off ? fmt(s.days, 1) + ' días' : fmt(s.bh, 1) + ' h de ' + fmt(c.Pcrit) + ' W']);
+      D.push(['Banco requerido', fmt(c.Cwh) + ' Wh<small>' + fmt(c.Cah) + ' Ah a ' + c.vsys + ' V</small>']);
+      D.push(['Banco instalado', c.bs + 'S' + c.bp + 'P<small>' + fmt(c.Whinst) + ' Wh</small>']);
+      D.push(['Corriente de carga', fmt(c.Ictrl, 1) + ' A']);
+    }
+    if (off || hyb || on) {
+      D.push(['Inversor', fmt(c.invStd) + ' W' + (s.phase === 3 ? '<small>' + fmt(c.invStd / 3) + ' W por fase</small>' : '<small>monofásico</small>')]);
+      D.push(['Factor por altitud', fmt(c.derate, 2) + '<small>' + fmt(s.alt) + ' msnm</small>']);
+    }
+    if (on || hyb) D.push(['Entradas MPPT necesarias', String(c.mppt || 1)]);
+    if (s.mdl) D.push(['Modelo de referencia', esc(s.mdl.n)]);
+    D.push(['Generación estimada', fmt(c.Egen) + ' Wh/día']);
+    if (c.cov !== null && c.cov !== undefined) D.push(['Cobertura del consumo', fmt(c.cov * 100) + ' %', true]);
+    var dl = '<dl class="rows">' + D.map(function (r) { return '<div' + (r[2] ? ' class="hl"' : '') + '><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join('') + '</dl>';
 
     var warns = c.warns.length ? '<ul class="warns">' + c.warns.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul>' : '';
-    var mem = memoria(s, c);
+    var cab = cableRows(s, c);
+    cb.innerHTML = '<dl class="rows">' + cab.map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '<small>' + esc(r[2]) + '</small></dd></div>'; }).join('') + '</dl>' +
+      '<p class="note">Conductor de cobre. La sección cumple la caída de tensión y la capacidad de corriente aproximada en conducto. Verifica con tu norma local.</p>';
+    var mem = memoria(s, c, cab);
 
+    var costTxt = renderCosts(s, c);
+    renderSim(s, c);
+    var names = { off: 'sistema off-grid', on: 'sistema on-grid', hyb: 'sistema híbrido', pump: 'bombeo solar' };
     var parts = [c.total + ' paneles de ' + fmt(s.wp) + ' Wp (' + fmt(c.Pfv / 1000, 2) + ' kWp), ' + c.ser + 'S' + c.par + 'P'];
-    if (c.off) {
-      parts.push(c.btot + ' baterías de ' + fmt(s.vunit) + ' V / ' + fmt(s.ahunit) + ' Ah (' + c.bs + 'S' + c.bp + 'P) a ' + c.vsys + ' V');
-      parts.push('Regulador MPPT de ' + (c.ctrlN > 1 ? c.ctrlN + ' × ' : '') + c.ctrlA + ' A');
-      parts.push('Inversor de ' + invTxt + ' W');
-    } else {
-      parts.push('Inversor de red de ' + invTxt + ' W');
-    }
-    lastSummary = 'Dimensionamiento solar (' + (c.off ? 'sistema aislado' : 'conectado a red') + ')\nConsumo: ' + fmt(c.E) + ' Wh/día · HSP ' + s.hsp + ' · PR ' + fmt(s.pr * 100) + ' %\n- ' + parts.join('\n- ') + '\n\nMemoria de cálculo\n' + mem;
+    if (off || hyb) parts.push(c.btot + ' baterías de ' + fmt(s.vunit) + ' V / ' + fmt(s.ahunit) + ' Ah (' + c.bs + 'S' + c.bp + 'P) a ' + c.vsys + ' V');
+    if (off && s.invtype === 'sep') parts.push('Regulador MPPT de ' + (c.ctrlN > 1 ? c.ctrlN + ' × ' : '') + c.ctrlA + ' A');
+    if (off) parts.push((s.invtype === 'int' ? 'Inversor-cargador con MPPT integrado de ' : 'Inversor de ') + invTxt + (s.wave === 'mod' ? ' (onda modificada)' : ' (onda pura)'));
+    if (hyb) parts.push('Inversor híbrido de ' + invTxt);
+    if (on) parts.push('Inversor de red de ' + invTxt);
+    if (pump) { parts.push('Bomba de ' + c.hp + ' HP (' + fmt(c.Pel) + ' W)'); parts.push('Variador solar de ' + c.vfd + ' kW'); parts.push('Reserva de ' + fmt(c.tank, 1) + ' m³'); }
+    if (s.mdl) parts.push('Modelo de referencia: ' + s.mdl.n);
+    lastSummary = 'Dimensionamiento solar (' + names[m] + ')\n' + (pump ? 'Agua: ' + s.q + ' m³/día a ' + s.hd + ' m' : 'Consumo: ' + fmt(c.E) + ' Wh/día') + ' · HSP ' + s.hsp + ' · PR ' + fmt(s.pr * 100) + ' %\n- ' + parts.join('\n- ') +
+      '\n\nCables y protecciones\n' + cab.map(function (r) { return '- ' + r[0] + ': ' + r[1]; }).join('\n') + '\n\nMemoria de cálculo\n' + mem + costTxt;
 
-    box.innerHTML = '<section class="card"><h2>Resultado</h2><div class="tiles">' + tiles + '</div>' + warns + dl +
-      '<details' + (wasOpen ? ' open' : '') + '><summary>Memoria de cálculo</summary><pre class="calc">' + esc(mem) + '</pre></details>' +
-      '<div class="actions"><button type="button" class="btn" data-copy>Copiar resumen</button><span class="ok" id="copy-msg" role="status"></span></div>' +
-      '<textarea class="sum" id="sum-text" readonly hidden aria-label="Resumen para copiar"></textarea></section>';
-
-    bar.innerHTML = '<strong>' + c.total + ' × ' + fmt(s.wp) + ' Wp</strong>' + (c.off ? '<span>' + c.btot + ' baterías · ' + invTxt + ' W inv.</span>' : '<span>Inversor ' + invTxt + ' W</span>');
+    var B = function (t) { return '<b>' + t + '</b>'; };
+    var plainH, plainT;
+    var ahTxt = fmt(s.ahunit) + ' Ah';
+    if (pump) plainH = 'Para subir ' + B(fmt(s.q, 1) + ' m³ de agua al día') + ' a ' + B(fmt(s.hd) + ' metros') + ' necesitas ' + B(c.total + ' paneles de ' + fmt(s.wp) + ' W') + ', una ' + B('bomba de ' + c.hp + ' HP') + ', un ' + B('variador solar de ' + c.vfd + ' kW') + ' y un ' + B('tanque de ' + fmt(c.tank, 1) + ' m³') + '.';
+    else if (off) plainH = 'Para consumir ' + B(fmt(c.E / 1000, 1) + ' kWh al día') + ' sin red eléctrica necesitas ' + B(c.total + ' paneles de ' + fmt(s.wp) + ' W') + ', ' + B(c.btot + ' baterías de ' + nomV(s.vunit) + ' V y ' + ahTxt) + (s.invtype === 'sep' ? ', un ' + B('regulador de ' + c.ctrlA + ' A') : '') + ' y un ' + B((s.invtype === 'int' ? 'inversor-cargador' : 'inversor') + ' de ' + invTxt) + '. Tus paneles generarán unos ' + B(fmt(c.Egen / 1000, 1) + ' kWh al día') + '.';
+    else if (hyb) plainH = 'Para tu consumo de ' + B(fmt(c.E / 1000, 1) + ' kWh al día') + ' necesitas ' + B(c.total + ' paneles de ' + fmt(s.wp) + ' W') + ', ' + B(c.btot + ' baterías de ' + nomV(s.vunit) + ' V y ' + ahTxt) + ' y un ' + B('inversor híbrido de ' + invTxt) + '. Los paneles cubren cerca del ' + B(fmt(c.cov * 100) + ' %') + ' de tu consumo y la red completa el resto.';
+    else plainH = 'Para tu consumo de ' + B(fmt(c.E / 1000, 1) + ' kWh al día') + ' conectado a la red necesitas ' + B(c.total + ' paneles de ' + fmt(s.wp) + ' W') + ' y un ' + B('inversor de red de ' + invTxt) + '. Los paneles cubren cerca del ' + B(fmt(c.cov * 100) + ' %') + ' de tu consumo.';
+    plainT = plainH.replace(/<\/?b>/g, '');
+    shareSummary = plainT + '\n\n' + lastSummary.split('\n\nMemoria de cálculo')[0] + costTxt;
+    rep.innerHTML = '<div class="card plain"><h2>En palabras simples</h2><p>' + plainH + '</p></div><div class="card">' + warns + dl +
+      '<details' + (open ? ' open' : '') + ' style="margin-top:10px"><summary>Memoria de cálculo</summary><pre class="calc">' + esc(mem) + '</pre></details></div>' +
+      '<div class="actions" style="margin-top:10px"><button type="button" class="btn solid" data-copy>Copiar resumen</button><button type="button" class="btn wa" data-wa="full">Enviar por WhatsApp</button><span class="ok" id="copy-msg" role="status"></span></div>' +
+      '<textarea class="sum" id="sum-text" readonly hidden aria-label="Resumen para copiar"></textarea>';
   }
 
   function update() {
@@ -418,56 +1237,90 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
       var wh = r.w * r.qty * r.h; E += wh; P += r.w * r.qty;
       var o = $('l' + r.id + '-wh'); if (o) o.textContent = fmt(wh);
     });
-    $('totals').innerHTML = '<span>Consumo diario <b>' + fmt(E) + ' Wh</b></span><span>Potencia instalada <b>' + fmt(P) + ' W</b></span>';
+    $('totals').innerHTML = '<span>Consumo <b>' + fmt(E) + ' Wh/día</b></span><span>Instalada <b>' + fmt(P) + ' W</b></span>';
     render(s, calc(s));
   }
 
-  function applyMode() {
-    var off = document.querySelector('input[name="mode"]:checked').value === 'off';
-    document.querySelectorAll('[data-off]').forEach(function (el) { el.hidden = !off; });
-    $('vmax-l').textContent = off ? 'Voc máx. del regulador (V)' : 'Voc máx. del inversor (V)';
-    $('vmin-l').textContent = off ? 'Vmín. de operación MPPT (V)' : 'Vmín. de arranque MPPT (V)';
-    $('vmax').value = off ? 150 : 600;
-    $('vmin').value = off ? 30 : 120;
+  $('simperfil').addEventListener('change', function () { update(); });
+  $('simh').addEventListener('input', function () { update(); });
+
+  function setTab(t) {
+    document.querySelectorAll('[data-pane]').forEach(function (p) { p.hidden = p.dataset.pane !== t; });
+    document.querySelectorAll('[data-tab]').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.tab === t ? 'true' : 'false'); });
+    var mn = document.querySelector('main'); if (mn) mn.scrollTop = 0;
+  }
+
+  function applyMode(reset) {
+    var m = $('mode').value;
+    document.querySelectorAll('[data-m]').forEach(function (el) { el.hidden = el.dataset.m.split(' ').indexOf(m) < 0; });
+    fillModels(); syncCost();
+    $('tab-cargas').textContent = m === 'pump' ? 'Bombeo' : 'Cargas';
+    $('eq-h').textContent = m === 'off' ? 'Regulador e inversor' : (m === 'on' ? 'Inversor de red' : (m === 'hyb' ? 'Inversor híbrido' : 'Variador solar'));
+    if (reset) { $('vmax').value = DEF[m][0]; $('vmin').value = DEF[m][1]; $('imax').value = DEF[m][2]; }
   }
 
   document.addEventListener('input', function (e) {
     var t = e.target;
-    var row = t.closest && t.closest('.load');
-    if (row) {
+    var row = t.closest && t.closest('.rowg');
+    if (row && row.dataset.id) {
       var r = rows.filter(function (x) { return String(x.id) === row.dataset.id; })[0];
       var k = t.dataset.k;
-      if (r && k) r[k] = (k === 'name') ? t.value : (parseFloat(t.value) || 0);
+      if (r && k) r[k] = (k === 'name') ? t.value : (k === 's' ? Math.max(1, parseFloat(t.value) || 1) : (parseFloat(t.value) || 0));
     }
-    if (t.id === 'hsp') $('city').value = 'custom';
+    if (t.id === 'hsp' || t.id === 'alt' || t.id === 'tmin' || t.id === 'tmax') $('city').value = 'custom';
+    if (['vmax', 'vmin', 'imax'].indexOf(t.id) > -1) { curMdl = null; $('mdl').value = 'custom'; }
+    if (['vunit', 'ahunit', 'dod', 'ebat'].indexOf(t.id) > -1) $('bmodel').value = 'custom';
     if (['wp', 'voc', 'vmp', 'isc'].indexOf(t.id) > -1) $('ppreset').value = 'custom';
-    if (t.id === 'city' || t.id === 'ppreset' || t.id === 'chem' || t.name === 'mode' || t.id === 'preset') return;
+    if (t.id === 'city' || t.id === 'ppreset' || t.id === 'chem' || t.id === 'mode' || t.id === 'preset') return;
     update();
   });
 
-  $('city').addEventListener('change', function () { if (this.value !== 'custom') $('hsp').value = this.value; update(); });
+  $('city').addEventListener('change', function () {
+    var c = CITIES[parseInt(this.value, 10)];
+    if (c) { $('hsp').value = c[2]; $('alt').value = c[3]; $('tmin').value = c[4]; $('tmax').value = c[5]; }
+    update();
+  });
   $('ppreset').addEventListener('change', function () {
     var p = PANELS[parseInt(this.value, 10)];
     if (p) { $('wp').value = p[1]; $('voc').value = p[2]; $('vmp').value = p[3]; $('isc').value = p[4]; }
     update();
   });
-  $('chem').addEventListener('change', function () { var c = CHEM[this.value]; $('dod').value = c.dod; $('ebat').value = c.eff; update(); });
-  document.querySelectorAll('input[name="mode"]').forEach(function (el) { el.addEventListener('change', function () { applyMode(); update(); }); });
+  $('chem').addEventListener('change', function () { var c = CHEM[this.value]; $('dod').value = c.dod; $('ebat').value = c.eff; $('bmodel').value = 'custom'; update(); });
+  $('bmodel').addEventListener('change', function () {
+    var b = BATS[parseInt(this.value, 10)];
+    if (b) { $('chem').value = b[1]; $('dod').value = CHEM[b[1]].dod; $('ebat').value = CHEM[b[1]].eff; $('vunit').value = b[2]; $('ahunit').value = b[3]; }
+    update();
+  });
+  $('invtype').addEventListener('change', function () { fillModels(); syncCost(); });
+  $('mdl').addEventListener('change', function () {
+    var d = MODELS[this.dataset.key][parseInt(this.value, 10)];
+    curMdl = d || null;
+    if (d) {
+      $('vmax').value = d.vmax; $('vmin').value = d.vmin;
+      if (d.imax) $('imax').value = d.imax;
+      if (d.ph) { $('phase').value = String(d.ph); $('phase2').value = String(d.ph); }
+      if (d.vsys) $('vsys').value = String(d.vsys);
+    }
+    update();
+  });
+  $('mode').addEventListener('change', function () { applyMode(true); update(); });
+  document.querySelectorAll('select').forEach(function (el) { if (['city', 'ppreset', 'chem', 'mode', 'preset'].indexOf(el.id) < 0) el.addEventListener('change', update); });
+  document.querySelectorAll('[data-tab]').forEach(function (b) { b.addEventListener('click', function () { setTab(b.dataset.tab); }); });
+  document.querySelector('[data-goto]').addEventListener('click', function () { setTab('informe'); });
 
   $('add').addEventListener('click', function () {
-    rows.push({ id: seq++, name: '', w: 0, qty: 1, h: 1 });
+    rows.push({ id: seq++, name: '', w: 0, qty: 1, h: 1, s: 1 });
     renderLoads(); update();
-    var last = rows[rows.length - 1];
-    var inp = $('l' + last.id + '-n'); if (inp) inp.focus();
+    var last = rows[rows.length - 1], inp = $('l' + last.id + '-n'); if (inp) inp.focus();
   });
   $('preset').addEventListener('change', function () {
     var p = PRESETS[parseInt(this.value, 10)];
-    if (p) { rows.push({ id: seq++, name: p[0], w: p[1], qty: p[2], h: p[3] }); renderLoads(); update(); }
+    if (p) { rows.push({ id: seq++, name: p[0], w: p[1], qty: p[2], h: p[3], s: p[4] }); renderLoads(); update(); }
     this.value = '';
   });
   $('loads').addEventListener('click', function (e) {
     var b = e.target.closest('[data-del]'); if (!b) return;
-    var id = b.closest('.load').dataset.id;
+    var id = b.closest('.rowg').dataset.id;
     rows = rows.filter(function (x) { return String(x.id) !== id; });
     renderLoads(); update();
   });
@@ -475,14 +1328,125 @@ footer { color: var(--muted); font-size: 13px; max-width: 80ch; }
     var b = e.target.closest && e.target.closest('[data-copy]'); if (!b || !lastSummary) return;
     var msg = $('copy-msg');
     var fallback = function () { var ta = $('sum-text'); ta.value = lastSummary; ta.hidden = false; ta.focus(); ta.select(); if (msg) msg.textContent = 'Selecciona y copia el texto.'; };
-    try {
-      navigator.clipboard.writeText(lastSummary).then(function () { if (msg) msg.textContent = 'Resumen copiado'; }, fallback);
-    } catch (err) { fallback(); }
+    try { navigator.clipboard.writeText(lastSummary).then(function () { if (msg) msg.textContent = 'Resumen copiado'; }, fallback); }
+    catch (err) { fallback(); }
   });
 
-  renderLoads(); applyMode(); update();
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-wa]'); if (!b) return;
+    var t = b.dataset.wa === 'simple' ? simpleSummary : shareSummary; if (!t) return;
+    window.open('https://wa.me/?text=' + encodeURIComponent(t + '\n\nDimensionador Solar'), '_blank');
+  });
+
+  /* Ayuda en cada campo */
+  var HELP = {
+    sE: 'Cuánta energía gastas en un día. Mira tu recibo de luz: divide los kWh del mes entre 30. Ejemplo: 75 kWh al mes son 2.5 kWh al día.',
+    sW: 'Los watts que da cada panel. Está escrito en la etiqueta del panel (por ejemplo 550 W).',
+    sH: 'HSP son las horas de sol fuerte al día en tu zona. En Arequipa son unas 6. Mientras más alto, menos paneles necesitas.',
+    sL: 'Qué tan al norte o al sur estás. En Perú es negativa (Arequipa: -16.4). Sirve para calcular la inclinación del panel.',
+    hsp: 'Horas de sol fuerte al día en tu zona. Mientras más alto, menos paneles necesitas.',
+    alt: 'Altura sobre el nivel del mar. En la altura el aire es más delgado y el inversor entrega menos potencia.',
+    tmin: 'La temperatura más baja del año. El frío sube el voltaje de los paneles y hay que revisar que no pase el límite del equipo.',
+    tmax: 'La temperatura más alta del año. El calor baja el voltaje de los paneles.',
+    wp: 'Los watts de cada panel, según su etiqueta.',
+    voc: 'Voc es el voltaje del panel sin conectar nada. Está en la ficha o la etiqueta del panel.',
+    vmp: 'Vmp es el voltaje del panel cuando trabaja con carga. Está en la ficha del panel.',
+    isc: 'Isc es la corriente máxima del panel en cortocircuito. Está en la ficha del panel.',
+    bvoc: 'Cuánto cambia el voltaje Voc cuando cambia la temperatura. Está en la ficha del panel (casi siempre cerca de -0.27 %/°C).',
+    bvmp: 'Cuánto cambia el voltaje Vmp con la temperatura. Está en la ficha del panel.',
+    pr: 'Rendimiento real del sistema. Descuenta pérdidas por calor, polvo y cables. Un valor normal es 75 %.',
+    einv: 'Qué porcentaje de energía no se pierde al pasar por el inversor. Lo normal es 90 a 95 %.',
+    sim: 'Qué porcentaje de tus aparatos funcionan a la vez. Si casi nunca usas todo junto, baja este valor.',
+    dod: 'Cuánto de la batería puedes gastar sin dañarla. Litio: unos 80 %. Plomo-ácido y gel: unos 50 %.',
+    ebat: 'Qué porcentaje de energía recuperas al cargar y descargar la batería.',
+    days: 'Cuántos días seguidos quieres que el sistema funcione sin sol.',
+    crit: 'Qué parte de tus cargas son indispensables si se corta la luz (luces, refrigeradora, router).',
+    bh: 'Cuántas horas quieres que las cargas indispensables funcionen con la batería si se corta la luz.',
+    vsys: 'Voltaje al que trabajan las baterías. Sistemas pequeños usan 12 V, medianos 24 V y grandes 48 V. En automático la app elige.',
+    vunit: 'Voltaje de cada batería individual (12 V o 24 V).',
+    ahunit: 'Los amperios-hora de cada batería. Más Ah significa más energía guardada.',
+    chem: 'Tipo de batería: litio dura más y se gasta más a fondo; plomo-ácido es más barata; gel no necesita mantenimiento.',
+    covt: 'Qué parte de tu consumo quieres cubrir con paneles. 100 % es cubrirlo todo.',
+    surge: 'Cuántas veces su potencia pide un motor al arrancar. El inversor debe aguantar ese pico.',
+    vmax: 'Voltaje máximo que soporta el equipo en su entrada. Está en su ficha. Si lo pasas, se daña.',
+    vmin: 'Voltaje mínimo desde el que el equipo empieza a trabajar. Está en su ficha.',
+    imax: 'Corriente máxima que el equipo recibe de los paneles. Está en su ficha.',
+    ddc: 'Cuánto voltaje se pierde en el cable. Menos de 3 % es lo recomendable.',
+    dbat: 'Pérdida de voltaje permitida en el cable de la batería. Menos de 2 % es lo recomendable.',
+    dac: 'Pérdida de voltaje permitida en el cable de salida a tus aparatos. Menos de 3 % es lo recomendable.',
+    ldc: 'Distancia en metros desde los paneles hasta el regulador o inversor.',
+    lbat: 'Distancia en metros desde la batería hasta el inversor. Mientras más corta, mejor.',
+    lac: 'Distancia en metros desde el inversor hasta tus aparatos.',
+    q: 'Litros o metros cúbicos de agua que necesitas por día. 1 m³ son 1 000 litros.',
+    hd: 'Cuántos metros hay que subir el agua, contando también la pérdida por la tubería.',
+    hb: 'Horas al día en que la bomba trabaja con sol.',
+    ep: 'Qué porcentaje de la energía se convierte en agua subida (motor + bomba). Lo normal es 35 a 45 %.',
+    td: 'Cuántos días de agua quieres guardar en el tanque.',
+    tar: 'Lo que pagas por cada kWh en tu recibo de luz. Búscalo en el recibo.',
+    cglob: 'Cables, protecciones, soportes y tornillería. Pon el total.',
+    invtype: 'Separado: regulador e inversor aparte. Integrado: un solo equipo hace todo.',
+    mdl: 'Modelos típicos sin marca. Confirma siempre los valores en la ficha del fabricante.',
+    simperfil: 'Cuándo usas la mayor parte de tu energía. Sirve solo para la simulación.'
+  };
+  Object.keys(HELP).forEach(function (id) {
+    var lb = document.querySelector('label[for="' + id + '"]'); if (!lb) return;
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'hq'; b.textContent = '?'; b.setAttribute('aria-expanded', 'false'); b.setAttribute('aria-label', 'Qué significa: ' + lb.textContent.trim());
+    lb.appendChild(b);
+    b.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      var nx = lb.nextElementSibling;
+      if (nx && nx.classList.contains('hint')) { nx.remove(); b.setAttribute('aria-expanded', 'false'); return; }
+      var d = document.createElement('div'); d.className = 'hint'; d.textContent = HELP[id]; lb.after(d); b.setAttribute('aria-expanded', 'true');
+    });
+  });
+
+  $('city').value = '0';
+  renderLoads(); applyMode(true); update();
+  /* Vista simple */
+  (function () {
+    var sc = $('sc');
+    sc.innerHTML = CITIES.map(function (c, i) { return '<option value="' + i + '">' + c[0] + '</option>'; }).join('');
+    function setH() { $('sH').value = CITIES[sc.value][2]; }
+    setH(); sc.addEventListener('change', function () { setH(); simpleCalc(); });
+    function row(a, b, hl) { return '<div' + (hl ? ' class="hl"' : '') + '><dt>' + a + '</dt><dd>' + b + '</dd></div>'; }
+    function sec(a) { return '<div class="sec"><dt>' + a + '</dt><dd></dd></div>'; }
+    function simpleCalc() {
+      var E = parseFloat($('sE').value) * 1000, Wp = parseFloat($('sW').value), H = parseFloat($('sH').value), lat = parseFloat($('sL').value), off = $('sOff').checked;
+      if (!(E > 0 && Wp > 0 && H > 0) || isNaN(lat)) { $('sRes').innerHTML = row('Paneles mínimos', 'NA') + row('Completa los datos', 'NA'); $('sPlain').textContent = 'Completa el consumo, la potencia del panel y el HSP para ver el resultado.'; simpleSummary = ''; return; }
+      var PR = 0.75, Ereq = off ? E / (0.92 * 0.85) : E / 0.92;
+      var perP = Wp * H * PR, N = Math.ceil(Ereq / perP - 1e-9), Pfv = N * Wp;
+      var inv = Math.max(0.5, Math.ceil(Pfv / 1000 * 2) / 2);
+      var V = Pfv <= 800 ? 12 : (Pfv <= 2400 ? 24 : 48);
+      var d = N * perP, inc = Math.max(10, 3.7 + 0.69 * Math.abs(lat));
+      var ori = lat < 0 ? 'Hacia el norte, desde el hemisferio sur' : 'Hacia el sur, desde el hemisferio norte';
+      var html = row('Paneles mínimos', N + ' × ' + fmt(Wp) + ' W', true) + row('Energía por panel', fmt(perP / 1000, 2) + ' kWh/día') +
+        row('Inversor por paneles', fmt(inv, 1) + ' kW') + row('Voltaje de trabajo', V + ' V');
+      if ($('sArr').checked) {
+        var vmp = Wp >= 400 ? Wp / 13 : Wp / 8, vlim = off ? 145 : 480, sMax = Math.max(1, Math.floor(vlim / (1.2 * vmp * 1.12))), ser = 1, k;
+        for (k = Math.min(sMax, N); k >= 1; k--) { if (N % k === 0) { ser = k; break; } }
+        html += sec('Arreglo sugerido') + row('Paneles', ser + ' en serie × ' + (N / ser) + ' en paralelo') + row('Voltaje aprox. (Vmp)', fmt(ser * vmp) + ' V');
+      }
+      html += sec('Energía generada') + row('Por día', fmt(d / 1000, 1) + ' kWh') + row('En 1 mes', fmt(d * 30 / 1000, 1) + ' kWh') + row('En 2 meses', fmt(d * 60 / 1000, 1) + ' kWh') +
+        sec('Posicionamiento') + row('Inclinación', fmt(inc, 1) + ' °') + row('Orientación', ori);
+      var pt = 'Necesitas ' + N + ' paneles de ' + fmt(Wp) + ' W' + (off ? ' para un sistema aislado de la red' : ' conectados a la red') + ', con un inversor de ' + fmt(inv, 1) + ' kW trabajando a ' + V + ' V. Generarán unos ' + fmt(d / 1000, 1) + ' kWh al día (' + fmt(d * 30 / 1000, 0) + ' kWh al mes). Colócalos inclinados ' + fmt(inc, 0) + '° mirando hacia el ' + (lat < 0 ? 'norte' : 'sur') + '.';
+      $('sPlain').textContent = pt;
+      simpleSummary = 'Dimensionamiento solar (rápido)\nConsumo: ' + fmt(E / 1000, 1) + ' kWh/día · HSP ' + H + '\n' + pt;
+      if ($('sVer').checked) html += sec('HSP por zona') + CITIES.map(function (c) { return row(c[0], c[2] + ' h'); }).join('');
+      $('sRes').innerHTML = html;
+      $('sNotas').textContent = 'El arreglo se calcula con el mayor número de paneles en serie para reducir la corriente y usar cables más delgados, sin pasar el voltaje máximo del inversor o regulador (en sistemas aislados).\n\nConsumo diario: sale del recibo de luz (promedio o el mes mayor). Divide los kWh del recibo entre los días medidos.\n\nHSP (hora solar pico): es una forma de medir la radiación solar del lugar; son las horas al día con 1 000 W/m².\n\nSi cambias el tipo de panel o la zona, vuelve a calcular. Los valores del arreglo son aproximados: confirma Voc y Vmp en la ficha del panel.';
+    }
+    $('sGo').addEventListener('click', simpleCalc);
+    ['sE', 'sW', 'sH', 'sL', 'sOff', 'sVer', 'sArr'].forEach(function (i) { $(i).addEventListener('input', simpleCalc); });
+    function view(simple) {
+      document.querySelector('.app').classList.toggle('simple', simple);
+      $('vsimple').setAttribute('aria-pressed', simple ? 'true' : 'false'); $('vfull').setAttribute('aria-pressed', simple ? 'false' : 'true');
+    }
+    $('vsimple').addEventListener('click', function () { view(true); simpleCalc(); });
+    $('vfull').addEventListener('click', function () { view(false); });
+    view(true); simpleCalc();
+  })();
+
 })();
 </script>
-
-</body>
-</html>
+</body></html>
